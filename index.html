@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperChat by ACAF</title>
+    <!-- Favicon: inline SVG showing ACAF in gold and blue -->
+    <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'><rect rx='12' width='64' height='64' fill='%230b6ef6'/><path d='M14 20h36v20H28l-6 6v-6H14z' fill='%23d4af37'/><circle cx='26' cy='30' r='2' fill='%230b6ef6'/><circle cx='34' cy='30' r='2' fill='%230b6ef6'/><circle cx='42' cy='30' r='2' fill='%230b6ef6'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 64 64'><rect width='100%25' height='100%25' fill='%23071220'/><text x='50%25' y='50%25' font-family='Inter, Arial, sans-serif' font-size='28' font-weight='700' text-anchor='middle' dominant-baseline='central'><tspan fill='%23d4af37'>A</tspan><tspan fill='%230b6ef6'>C</tspan><tspan fill='%23d4af37'>A</tspan><tspan fill='%230b6ef6'>F</tspan></text></svg>">
+    <meta name="theme-color" content="#071020">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Emoji Picker Element -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        :root{
+            --acaf-blue: #0b74ff;
+            --acaf-blue-2: #4fd1ff;
+            --acaf-gold: #f5c254;
+            --acaf-gold-deep: #d4a017;
+            --acaf-panel: #071425;
+            --acaf-mid: #0f1b2a;
+            --acaf-bg: #061122;
+            --acaf-gradient: linear-gradient(135deg, var(--acaf-blue), var(--acaf-gold));
+            --glass: rgba(255,255,255,0.03);
+        }
+        body { background-color: var(--acaf-bg); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color: #eaf6ff; }
+        .wa-bg { background: linear-gradient(180deg, rgba(6,17,34,0.7), rgba(4,10,20,0.6)), url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png"); background-size: cover; }
+        .acaf-blue { color: var(--acaf-blue) !important; }
+        .acaf-gold { color: var(--acaf-gold) !important; }
+        .btn-acaf { background: var(--acaf-gradient); color: #061224; box-shadow: 0 6px 18px rgba(11,116,255,0.12); border: none; font-weight: 700; }
+        .btn-acaf:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(11,116,255,0.16); }
+        .btn-gold { background: linear-gradient(90deg, var(--acaf-gold), var(--acaf-gold-deep)); color: #061224; font-weight: 700; box-shadow: 0 6px 18px rgba(245,194,84,0.08); }
+        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.02); }
+        .avatar-border { box-shadow: 0 0 0 2px rgba(245,194,84,0.08), 0 6px 18px rgba(3,6,10,0.6); }
+        .border-acaf-blue { border-color: var(--acaf-blue) !important; }
+        .hover-acaf-blue:hover { color: var(--acaf-blue) !important; }
+        .bubble-me { background: linear-gradient(180deg, var(--acaf-blue), var(--acaf-blue-2)); color: #012; }
+        .message-bubble { border-radius: 14px; padding: 10px 14px; line-height: 1.25; box-shadow: 0 6px 18px rgba(2,8,20,0.6); transition: transform 140ms ease, box-shadow 140ms ease; }
+        .message-bubble:hover{ transform: translateY(-3px); box-shadow: 0 14px 40px rgba(2,8,20,0.75); }
+        .message-other { background: linear-gradient(180deg, rgba(12,20,30,0.9), rgba(8,14,22,0.9)); color: #dbeafc; border: 1px solid rgba(255,255,255,0.02); }
+        .accent-acaf { accent-color: var(--acaf-blue) !important; }
+        /* Notifications and modes */
+        #toast-container { position: fixed; right: 20px; top: 20px; z-index: 60; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: linear-gradient(90deg, rgba(6,20,40,0.95), rgba(3,12,30,0.95)); color: #fff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 18px 50px rgba(2,8,30,0.6); font-size: 13px; display: flex; gap:10px; align-items:center; border-left: 4px solid var(--acaf-blue); }
+        .toast strong { display:block; }
+        .toast.animate-in{ animation: acafPop .32s ease; }
+        @keyframes acafPop{ from{ transform: translateY(-8px) scale(.98); opacity:0 } to{ transform: none; opacity:1 } }
+        .mode-active { filter: drop-shadow(0 0 6px var(--acaf-blue)); }
+        .night-mode { filter: brightness(0.75) saturate(0.9); }
+        /* Scrollbar polish */
+        #chat-list::-webkit-scrollbar, #message-container::-webkit-scrollbar, #status-feed-container::-webkit-scrollbar { width: 10px; }
+        #chat-list::-webkit-scrollbar-thumb, #message-container::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(245,194,84,0.18), rgba(11,116,255,0.12)); border-radius: 8px; }
+        #chat-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
+        /* small UI polish */
+        .btn-acaf, .btn-gold, button { transition: transform 160ms ease, box-shadow 160ms ease; }
+        .acaf-blue-dot { width:8px; height:8px; border-radius:999px; background:var(--acaf-blue); box-shadow: 0 4px 14px rgba(11,116,255,0.18); }
+        .new-msg-highlight{ animation: highlightPulse 1.8s ease; }
+        @keyframes highlightPulse{ 0%{ box-shadow:0 0 0 0 rgba(11,116,255,0.08);} 70%{ box-shadow:0 0 0 8px rgba(11,116,255,0);} 100%{ box-shadow:0 0 0 0 rgba(11,116,255,0);} }
+        /* Fun animations */
+        @keyframes sendPop { 0%{ transform: scale(.92) translateY(6px); opacity:0 } 60%{ transform: scale(1.03) translateY(-2px); opacity:1 } 100%{ transform: none } }
+        .send-pop{ animation: sendPop 520ms cubic-bezier(.2,.9,.3,1); box-shadow: 0 18px 48px rgba(11,116,255,0.12); }
+
+        @keyframes reactionPop { 0%{ transform: scale(.6); opacity:0 } 60%{ transform: scale(1.08); opacity:1 } 100%{ transform: scale(1); } }
+        .reaction-pop{ animation: reactionPop 420ms cubic-bezier(.2,.9,.3,1); }
+
+        .modal-scale-in{ animation: modalIn 420ms cubic-bezier(.2,.9,.3,1) both; }
+        @keyframes modalIn{ from{ transform: translateY(12px) scale(.98); opacity:0 } to{ transform:none; opacity:1 } }
+
+        /* AI tour removed */
+
+        /* small sparkle for send button (decorative) */
+        .sparkle{ position: absolute; width:6px; height:6px; border-radius:999px; background:var(--acaf-gold); box-shadow:0 6px 18px rgba(245,194,84,0.3); opacity:0; }
+        /* Tour */
+        .tour-overlay{ position:fixed; inset:0; background:rgba(2,6,16,0.6); z-index:90; display:flex; align-items:center; justify-content:center; }
+        .tour-tooltip{ position:absolute; max-width:420px; background:linear-gradient(180deg, rgba(6,14,28,0.98), rgba(8,18,30,0.98)); color:#eaf6ff; padding:14px; border-radius:8px; box-shadow:0 20px 60px rgba(2,8,30,0.7); z-index:95; border:1px solid rgba(255,255,255,0.03); }
+        .tour-controls{ margin-top:10px; display:flex; gap:8px; justify-content:flex-end; }
+        .tour-highlight{ position:relative; box-shadow:0 8px 30px rgba(11,116,255,0.14), inset 0 0 0 2px rgba(11,116,255,0.06); border-radius:8px; z-index:1000; }
+        .tour-step-title{ font-weight:700; margin-bottom:6px; }
+        /* Welcome overlay */
+        #welcome-overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:75; pointer-events:none; }
+        #welcome-card{ pointer-events:auto; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.04); padding:28px 36px; border-radius:12px; text-align:center; backdrop-filter: blur(6px); box-shadow:0 20px 60px rgba(2,8,30,0.7); opacity:0; transform: translateY(18px) scale(.98); }
+        #welcome-card h1{ font-size:26px; margin:0; background: linear-gradient(90deg,var(--acaf-gold),var(--acaf-blue)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:800; letter-spacing:0.6px; }
+        #welcome-card p{ margin:6px 0 0; color: #bcdff8; font-size:13px; }
+        .welcome-in{ animation: welcomeIn 520ms cubic-bezier(.2,.9,.3,1) forwards; }
+        .welcome-out{ animation: welcomeOut 420ms cubic-bezier(.2,.9,.3,1) forwards; }
+        @keyframes welcomeIn{ to{ opacity:1; transform: translateY(0) scale(1); } }
+        @keyframes welcomeOut{ to{ opacity:0; transform: translateY(-24px) scale(.98); } }
+    
+        /* ACAF reliability fixes: modals are independently clickable and scrollable. */
+        [id^="modal-"].fixed { pointer-events: auto !important; z-index: 100 !important; }
+        [id^="modal-"].fixed input,
+        [id^="modal-"].fixed textarea,
+        [id^="modal-"].fixed select,
+        [id^="modal-"].fixed button { pointer-events: auto !important; }
+        #modal-profile > div,
+        #modal-group > div,
+        #modal-community > div,
+        #modal-community-manage > div,
+        #modal-add-contact > div,
+        #modal-status > div,
+        #modal-requests > div,
+        #modal-group-manage > div {
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        #modal-group > div {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #group-members-list {
+            min-height: 80px;
+            max-height: 40vh !important;
+            overflow-y: auto !important;
+            flex: 1 1 auto;
+        }
+        #auth-screen { z-index: 50; pointer-events: auto !important; }
+        #auth-screen button, #auth-screen input { pointer-events: auto !important; position: relative; z-index: 51; }
+
+
+        /* FINAL interaction fixes: hidden welcome overlay must truly disappear. */
+        #welcome-overlay.hidden { display: none !important; pointer-events: none !important; }
+        #welcome-overlay:not(.hidden) { pointer-events: none !important; }
+
+        /* Modal cards get their own reliable scrolling area. */
+        [id^="modal-"].fixed { overflow: hidden !important; }
+        [id^="modal-"].fixed > div:first-child {
+            max-height: calc(100vh - 32px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            pointer-events: auto !important;
+        }
+        #modal-group > div:first-child {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+        }
+        #group-members-list {
+            min-height: 80px !important;
+            max-height: 40vh !important;
+            overflow-y: auto !important;
+            flex: 0 1 auto !important;
+        }
+
+        /* Auth tabs must always be above every auth-screen element. */
+        #auth-screen .flex.border-b { position: relative; z-index: 200; pointer-events: auto !important; }
+        #auth-screen .flex.border-b button { position: relative; z-index: 201; pointer-events: auto !important; cursor: pointer; }
+    </style>
+</head>
+<!-- highlight.js for code highlighting in Code Window Mail -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<body class="h-screen w-screen flex items-center justify-center overflow-hidden">
+
+    <!-- ROOT CONTAINER -->
+    <div id="app" class="w-full h-full max-w-[1600px] max-h-[95vh] shadow-2xl flex bg-[#111b21] overflow-hidden rounded-lg border border-slate-700">
+
+        <!-- ================= 1. AUTH SCREEN ================= -->
+        <div id="auth-screen" class="w-full h-full flex items-center justify-center bg-[#0b141a] absolute z-50">
+            <div class="bg-[#111b21] p-8 rounded-xl shadow-xl w-96 border border-slate-700 text-slate-200">
+                <div class="text-center mb-6">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                        <svg width="48" height="48" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="12" fill="url(%23g1)"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mt-2" style="background: linear-gradient(90deg,var(--acaf-gold),var(--acaf-blue)); -webkit-background-clip:text; background-clip:text; color:transparent;">ACAF Chat</h2>
+                    <p class="text-xs text-slate-400">Secure Real-time Messaging & Video Calls</p>
+                </div>
+               
+                <div class="flex border-b border-slate-700 mb-4">
+                    <button type="button" onclick="switchAuthTab('login')" id="tab-login" class="flex-1 pb-2 font-semibold acaf-blue border-b-2 border-acaf-blue">Sign In</button>
+                    <button type="button" onclick="switchAuthTab('register')" id="tab-register" class="flex-1 pb-2 font-semibold text-slate-400">Create Account</button>
+                </div>
+
+                <!-- Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400">Username (Must be unique)</label>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400">Password</label>
+                    </div>
+                    <div id="reg-extra" class="hidden space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400">Profile Picture URL (required)</label>
+                            <input type="text" id="auth-pic" placeholder="https://i.pravatar.cc/150?img=1" class="w-full mt-1 bg-[#2a3942] border-none rounded p-2 text-white outline-none text-xs">
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400">Or upload an image file</div>
+                            <div class="flex gap-2 items-center">
+                                <input type="file" id="reg-avatar-file" accept="image/*" class="hidden" onchange="handleRegAvatarFile(event)">
+                                <button type="button" onclick="document.getElementById('reg-avatar-file').click()" class="px-3 py-2 btn-acaf rounded text-sm">Choose File</button>
+                                <span id="reg-avatar-filename" class="text-xs text-slate-300"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" id="auth-user" class="w-full mt-1 bg-[#2a3942] border-none rounded p-2 text-white outline-none">
+                    <input type="password" id="auth-pass" class="w-full mt-1 bg-[#2a3942] border-none rounded p-2 text-white outline-none">
+                    <button onclick="handleAuthSubmit()" id="auth-btn" class="w-full btn-acaf font-bold p-2 rounded transition">Sign In</button>
+                    <p id="auth-error" class="text-red-400 text-xs text-center"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 2. MAIN CHAT APP ================= -->
+        <!-- Left Sidebar: Chats, Status, Communities -->
+        <div id="sidebar" class="w-[400px] h-full bg-[#111b21] border-r border-slate-700 flex flex-col hidden">
+            <!-- Sidebar Header -->
+                <div class="h-16 bg-[#202c33] px-4 flex items-center justify-between">
+                <div class="flex items-center gap-3 cursor-pointer min-w-0" onclick="openProfileModal()">
+                    <img id="my-avatar" src="" class="w-10 h-10 rounded-full object-cover border avatar-border">
+                    <span id="my-username" class="text-white font-medium text-sm truncate max-w-[140px]"></span>
+                </div>
+                <div id="tools-container" class="flex flex-col gap-2">
+                    <div class="flex items-center justify-end">
+                        <button id="tools-toggle" onclick="toggleToolsCollapse()" class="px-2 py-1 text-xs bg-slate-700 rounded">Tools</button>
+                    </div>
+                    <div id="tools-grid" class="flex gap-3 text-[#aebac1] text-base flex-shrink-0">
+                        <div class="relative flex flex-col items-center text-xs">
+                            <i id="btn-requests" class="fa-solid fa-user-check cursor-pointer text-lg" title="Friend Requests" onclick="openRequestsModal()"></i>
+                            <span id="requests-badge" class="absolute -top-2 -right-2 text-xs bg-[#0b6ef6] text-white px-1 rounded-full hidden">0</span>
+                            <div class="mt-1 text-[11px] text-slate-300">Requests</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i id="btn-office-mode" class="fa-solid fa-briefcase cursor-pointer text-lg" title="Office Mode" onclick="toggleOfficeMode()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Office</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i id="btn-silent-mode" class="fa-solid fa-bell-slash cursor-pointer text-lg" title="Silent Mode" onclick="toggleSilentMode()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Silent</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i id="btn-night-mode" class="fa-solid fa-moon cursor-pointer text-lg" title="Night Mode" onclick="toggleNightMode()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Night</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i class="fa-solid fa-user-plus cursor-pointer text-lg" title="Add Contact" onclick="openAddContactModal()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Add</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i class="fa-solid fa-users-rectangle cursor-pointer text-lg" title="Communities" onclick="openCommunityModal()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Communities</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i class="fa-solid fa-circle-notch cursor-pointer text-lg" title="Status" onclick="openStatusModal()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">Status</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i class="fa-solid fa-user-group cursor-pointer text-lg" title="New Group" onclick="openGroupModal()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">New Group</div>
+                        </div>
+
+                        <div class="flex flex-col items-center text-xs">
+                            <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-lg" onclick="logout()"></i>
+                            <div class="mt-1 text-[11px] text-slate-300">More</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Area -->
+            <div id="profile-area" class="px-4 py-3 border-t border-[#0f1b1e] bg-[#0f1619]">
+                <div class="flex items-center justify-between">
+                    <div class="min-w-0">
+                        <div id="inline-status-display" class="text-sm text-slate-300 truncate cursor-pointer" onclick="openProfileModal()">
+                            <span id="my-status">No status set</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">Click avatar to edit profile or pen to edit status</div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <input id="inline-status-input" type="text" class="hidden w-48 bg-[#2a3942] text-sm p-2 rounded outline-none mb-2" placeholder="Set a new status">
+                        <div id="inline-status-actions" class="hidden flex gap-2">
+                            <button onclick="saveInlineStatus()" class="px-2 py-1 text-xs btn-gold rounded">Save</button>
+                            <button onclick="cancelInlineStatus()" class="px-2 py-1 text-xs bg-slate-700 rounded">Cancel</button>
+                        </div>
+                        <button id="inline-edit-btn" onclick="toggleInlineStatusEdit()" class="mt-2 px-2 py-1 text-xs bg-slate-700 rounded"><i class="fa-solid fa-pen text-sm"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="p-2 bg-[#111b21]">
+                <div class="bg-[#202c33] rounded-lg flex items-center px-3 py-1.5">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm mr-3"></i>
+                    <input type="text" placeholder="Search or start new chat" class="bg-transparent text-sm text-white w-full outline-none">
+                </div>
+            </div>
+
+            <!-- Chat List / Active Tab Container -->
+            <div id="community-sidebar" class="px-3 py-2 border-t border-[#0f1b1e]">
+                <div class="text-xs text-slate-400 mb-2">Communities</div>
+                <div id="community-list-sidebar" class="flex flex-col gap-2"></div>
+            </div>
+            <div id="chat-list" class="flex-1 overflow-y-auto divide-y divide-[#222d34]">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Right Main Chat Window -->
+        <div id="chat-window" class="flex-1 h-full flex hidden wa-bg">
+            <!-- Main chat column -->
+            <div id="main-chat-col" class="flex-1 h-full flex flex-col">
+            <!-- Chat Header -->
+            <div class="h-16 bg-[#202c33] px-4 flex items-center justify-between border-l border-slate-700">
+                <div class="flex items-center gap-3">
+                    <img id="active-chat-avatar" src="https://i.pravatar.cc/150?img=12" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                        <h3 id="active-chat-name" class="text-white text-sm font-semibold">Select a chat</h3>
+                        <p id="active-chat-status" class="text-xs text-slate-400">online</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 text-[#aebac1] text-lg">
+                    <i class="fa-solid fa-video cursor-pointer hover-acaf-blue" onclick="startVideoCall()"></i>
+                    <i class="fa-solid fa-phone cursor-pointer hover-acaf-blue" onclick="startAudioCall()" title="Start Audio Call"></i>
+                    <i class="fa-solid fa-magnifying-glass cursor-pointer"></i>
+                    <button id="tag-office-btn" onclick="toggleTagOffice()" class="ml-2 px-2 py-1 text-xs rounded bg-transparent border border-slate-600 text-slate-300 hidden">Tag Office</button>
+                    <button id="unfriend-btn" onclick="unfriendCurrentChat()" class="ml-2 px-2 py-1 text-xs rounded bg-red-700 text-white hidden">Unfriend</button>
+                    <button id="leave-group-btn" onclick="leaveCurrentGroup()" class="ml-2 px-2 py-1 text-xs rounded bg-slate-700 text-white hidden">Leave Group</button>
+                    <button id="manage-group-btn" onclick="openGroupManageModal()" class="ml-2 px-2 py-1 text-xs rounded bg-acaf-blue text-white hidden">Manage Members</button>
+                </div>
+            </div>
+
+            <!-- Message History Container -->
+            <div id="message-container" class="flex-1 overflow-y-auto p-6 space-y-3">
+                <!-- Chat messages load here -->
+            </div>
+
+            <!-- Chat Input Footer -->
+            <div id="chat-footer" class="h-16 bg-[#202c33] px-4 flex items-center gap-4 relative">
+                <!-- Emoji Picker Popup -->
+                <div id="emoji-picker-container" class="absolute bottom-20 left-4 hidden z-40">
+                    <emoji-picker></emoji-picker>
+                </div>
+
+                <i class="fa-regular fa-face-smile text-[#aebac1] text-xl cursor-pointer" onclick="toggleEmojiPicker()"></i>
+                <i class="fa-solid fa-paperclip text-[#aebac1] text-xl cursor-pointer"></i>
+               
+                <input type="text" id="message-input" onkeydown="handleMessageKeydown(event)" placeholder="Type a message" class="flex-1 bg-[#2a3942] text-white text-sm rounded-lg px-4 py-2.5 outline-none">
+                <button id="send-btn" onclick="sendMessage()" class="ml-2 px-3 py-2 btn-acaf text-sm rounded">Send</button>
+               
+                <i class="fa-solid fa-microphone text-[#aebac1] text-xl cursor-pointer" onclick="sendMessage()"></i>
+            </div>
+            </div>
+
+            <!-- Workspace Panel (unique features) -->
+            <div id="workspace-panel" class="w-96 h-full bg-[#0c1620] border-l border-slate-800 p-4 flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-white font-semibold">Workspace</h4>
+                    <div class="flex gap-2">
+                        <button onclick="showPanelTab('notes')" class="px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Notes</button>
+                        <button onclick="showPanelTab('files')" class="px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Files</button>
+                            <button onclick="showPanelTab('templates')" class="px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Templates</button>
+                            <button onclick="showPanelTab('code')" class="px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Code</button>
+                            <button onclick="showPanelTab('tools')" class="px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Tools</button>
+                    </div>
+                </div>
+
+                <!-- Workspace Tour Player (appears when workspace is empty) -->
+                <div id="workspace-tour" class="hidden bg-[#071827] p-3 rounded mb-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-36 h-24 bg-[#0b1220] rounded relative overflow-hidden">
+                            <video id="ws-tour-video" class="w-full h-full object-cover bg-black" playsinline></video>
+                            <div id="ws-tour-media" class="absolute inset-0 flex items-center justify-center text-xs text-slate-300 pointer-events-none">Tour Preview</div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div id="ws-tour-title" class="text-sm font-semibold text-white">Welcome to ACAF</div>
+                                    <div id="ws-tour-desc" class="text-xs text-slate-300 mt-1">Watch a short walkthrough of the workspace features.</div>
+                                </div>
+                                <div class="text-xs text-slate-400">AI Tour</div>
+                            </div>
+                            <div class="mt-3 flex gap-2 items-center">
+                                <button id="ws-tour-play" onclick="wsTourPlay()" class="px-3 py-1 btn-acaf text-xs rounded">Play</button>
+                                <button id="ws-tour-pause" onclick="wsTourPause()" class="px-3 py-1 bg-slate-700 text-xs rounded hidden">Pause</button>
+                                <button id="ws-tour-rew" onclick="wsTourSeek(-10)" class="px-3 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">«10s</button>
+                                <button id="ws-tour-fwd" onclick="wsTourSeek(10)" class="px-3 py-1 text-xs rounded btn-gold">10s»</button>
+                                <div class="ml-2 flex items-center gap-2 w-36">
+                                    <input id="ws-tour-volume" type="range" min="0" max="1" step="0.05" value="0.9" onchange="wsTourSetVolume(this.value)" class="w-full">
+                                </div>
+                                <button id="ws-tour-full" onclick="wsTourFullscreen()" class="ml-auto px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Fullscreen</button>
+                            </div>
+                            <div class="mt-2">
+                                <div id="ws-tour-bar" class="w-full h-2 bg-[#061022] rounded overflow-hidden cursor-pointer" onclick="wsTourSeekToEvent(event)">
+                                    <div id="ws-tour-bar-fill" style="width:0%;height:100%;background:linear-gradient(90deg,var(--acaf-blue),var(--acaf-gold));"></div>
+                                </div>
+                                <div id="ws-tour-progress" class="text-xs text-slate-400 mt-2">0 / 0</div>
+                            </div>
+                            <div class="mt-2 flex gap-2">
+                                <input id="ws-tour-upload-file" type="file" accept="video/*" class="hidden" onchange="wsTourUploadFile(event)">
+                                <button onclick="document.getElementById('ws-tour-upload-file').click()" class="px-3 py-1 text-xs rounded bg-slate-700">Upload Video</button>
+                                <button onclick="wsTourUseSlides()" class="px-3 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">Use Animated Slides</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- First-timer Review Prompt -->
+                <div id="first-time-review" class="hidden bg-[#061022] p-3 rounded mb-3 border border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 rounded bg-[#071827] flex items-center justify-center text-sm text-slate-300">★</div>
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-white">Quick Feedback</div>
+                            <div class="text-xs text-slate-400">You're new here — tell us what you think. It helps improve ACAF.</div>
+                            <div class="mt-2 flex items-center gap-2" id="review-stars">
+                                <button class="text-slate-300 text-xl" onclick="setReviewStars(1)">☆</button>
+                                <button class="text-slate-300 text-xl" onclick="setReviewStars(2)">☆</button>
+                                <button class="text-slate-300 text-xl" onclick="setReviewStars(3)">☆</button>
+                                <button class="text-slate-300 text-xl" onclick="setReviewStars(4)">☆</button>
+                                <button class="text-slate-300 text-xl" onclick="setReviewStars(5)">☆</button>
+                            </div>
+                            <textarea id="review-comment" placeholder="Any quick notes? (optional)" class="w-full mt-2 p-2 rounded bg-[#071827] text-xs text-white" rows="3"></textarea>
+                            <div class="mt-2 flex gap-2">
+                                <button onclick="submitFirstTimeReview()" class="px-3 py-1 btn-acaf text-xs rounded">Submit</button>
+                                <button onclick="skipFirstTimeReview()" class="px-3 py-1 bg-slate-700 text-xs rounded">Skip</button>
+                                <button onclick="openReviewsPanel()" class="ml-auto px-2 py-1 text-xs rounded bg-transparent border border-slate-700 text-slate-300">View Reviews</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-notes" class="flex-1 overflow-y-auto space-y-3">
+                    <div class="flex gap-2">
+                        <input id="note-input" placeholder="Quick note or paste message" class="flex-1 bg-[#071827] p-2 rounded outline-none text-sm">
+                        <button onclick="addNote()" class="px-3 py-1 btn-gold rounded text-sm">Add</button>
+                    </div>
+                    <div id="notes-list" class="space-y-2"></div>
+                </div>
+
+                <div id="panel-files" class="hidden flex-1 overflow-y-auto">
+                    <div class="text-xs text-slate-400 mb-2">Upload files to share in this workspace (stored locally)</div>
+                    <input id="file-uploader" type="file" class="w-full text-sm" onchange="handleFileUpload(event)">
+                    <div id="files-list" class="mt-3 space-y-2"></div>
+                </div>
+
+                <div id="panel-templates" class="hidden flex-1 overflow-y-auto">
+                    <div class="text-xs text-slate-400 mb-2">Message templates — click to insert into input</div>
+                    <div id="templates-list" class="space-y-2">
+                        <div class="flex items-center justify-between bg-[#0b1220] p-2 rounded">
+                            <div class="text-sm">Standup update</div>
+                            <button onclick="insertTemplate('Standup update: Yesterday I worked on..., Today I will...')" class="px-2 py-1 btn-acaf rounded text-xs">Insert</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-[#0b1220] p-2 rounded">
+                            <div class="text-sm">Quick meeting invite</div>
+                            <button onclick="insertTemplate('Let\'s meet at 3 PM. Zoom link: ...')" class="px-2 py-1 btn-acaf rounded text-xs">Insert</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-code" class="hidden flex-1 overflow-y-auto">
+                    <div class="mb-3">
+                        <h5 class="text-sm font-semibold">Share Code</h5>
+                        <div class="text-xs text-slate-400">Send a code snippet to a user — it will appear in their Code Mailbox.</div>
+                        <div class="mt-2 space-y-2">
+                            <input id="code-to" placeholder="Recipient username (required)" class="w-full bg-[#071827] p-2 rounded text-sm outline-none">
+                            <input id="code-title" placeholder="Title (optional)" class="w-full bg-[#071827] p-2 rounded text-sm outline-none">
+                            <select id="code-lang" class="w-full bg-[#071827] p-2 rounded text-sm outline-none">
+                                <option value="javascript">javascript</option>
+                                <option value="python">python</option>
+                                <option value="html">html</option>
+                                <option value="css">css</option>
+                                <option value="json">json</option>
+                                <option value="text">text</option>
+                            </select>
+                            <textarea id="code-content" placeholder="Paste your code here" rows="8" class="w-full bg-[#071827] p-2 rounded text-xs font-mono outline-none"></textarea>
+                            <div class="flex gap-2 justify-end">
+                                <button onclick="clearCodeCompose()" class="px-3 py-1 text-xs bg-slate-700 rounded">Clear</button>
+                                <button onclick="sendCodeMail()" class="px-3 py-1 btn-acaf rounded text-xs">Send</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5 class="text-sm font-semibold">Code Mailbox</h5>
+                        <div class="text-xs text-slate-400 mb-2">Messages sent to you appear here. Click View to open the ACAF Code Window Mail.</div>
+                        <div id="code-mail-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <div id="panel-tools" class="hidden flex-1 overflow-y-auto">
+                    <div class="text-sm font-semibold text-white mb-2">Workspace Tools</div>
+                    <div class="text-xs text-slate-400 mb-2">Utilities to inspect the app.</div>
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="runButtonTester()" class="px-3 py-1 btn-acaf text-xs rounded">Run Button Tester</button>
+                        <button onclick="scanButtonsReport(true)" class="px-3 py-1 text-xs bg-slate-700 rounded">Rescan (include anchors)</button>
+                    </div>
+                    <div id="button-tester-results" class="text-xs text-slate-300 space-y-2"></div>
+                </div>
+
+                <!-- Game removed per request -->
+
+                <div class="text-xs text-slate-400 mt-2">Tip: click any message bubble to save it as a note.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Welcome Overlay -->
+    <div id="welcome-overlay" class="hidden">
+        <div id="welcome-card">
+            <h1 id="welcome-title">Welcome</h1>
+            <p id="welcome-sub">to ACAF Chat</p>
+            <div class="mt-4 flex gap-2 justify-center">
+                <button onclick="document.getElementById('welcome-card').classList.add('welcome-out'); setTimeout(()=>document.getElementById('welcome-overlay').classList.add('hidden'),420);" class="px-3 py-1 bg-slate-700 rounded text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tour removed -->
+    <!-- ================= 3. MODALS (Profile, Group, Community, Status, Video Call) ================= -->
+
+    <!-- Profile Modal -->
+    <div id="modal-profile" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-80 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-4">Edit Profile & Status</h3>
+            <div class="text-center mb-4">
+                <img id="modal-avatar-preview" src="" class="w-20 h-20 rounded-full mx-auto object-cover mb-2 border-2 avatar-border">
+                <input type="text" id="edit-avatar-url" placeholder="New Image URL" class="w-full bg-[#2a3942] text-xs p-2 rounded outline-none mb-2">
+            </div>
+            <div class="mb-4">
+                <label class="text-xs text-slate-400">Update Status Message</label>
+                <input type="text" id="edit-status-text" placeholder="Hey there! I am using ACAF Chat." class="w-full bg-[#2a3942] text-sm p-2 rounded outline-none mt-1">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm bg-slate-700 rounded">Cancel</button>
+                <button onclick="saveProfileChanges()" class="px-4 py-2 text-sm btn-gold rounded">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="modal-group" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-4">Create New Group</h3>
+            <input type="text" id="group-name-input" placeholder="Group Subject" class="w-full bg-[#2a3942] text-sm p-2 rounded outline-none mb-4">
+            <label class="text-xs text-slate-400">Attach to Community (optional)</label>
+            <select id="group-community-select" class="w-full bg-[#2a3942] text-sm p-2 rounded outline-none mb-4">
+                <option value="">No community</option>
+            </select>
+            <p class="text-xs text-slate-400 mb-2">Select Members:</p>
+            <div id="group-members-list" class="max-h-40 overflow-y-auto space-y-2 mb-4 bg-[#202c33] p-2 rounded">
+                <!-- Checkboxes populated via JS -->
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm bg-slate-700 rounded">Cancel</button>
+                <button onclick="createGroup()" class="px-4 py-2 text-sm btn-gold rounded">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Community Modal -->
+    <div id="modal-community" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-2">Create Community</h3>
+            <p class="text-xs text-slate-400 mb-4">Communities bring members together in topic-based groups.</p>
+            <input type="text" id="community-name-input" placeholder="Community Name" class="w-full bg-[#2a3942] text-sm p-2 rounded outline-none mb-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm bg-slate-700 rounded">Cancel</button>
+                <button onclick="createCommunity()" class="px-4 py-2 text-sm btn-gold rounded">Create Community</button>
+                <button onclick="openCommunityManageModal()" class="px-4 py-2 text-sm bg-slate-700 rounded">Manage Communities</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Communities Modal -->
+    <div id="modal-community-manage" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-2">Manage Communities</h3>
+            <div id="community-manage-list" class="max-h-64 overflow-y-auto mb-4"></div>
+            <div class="flex justify-end gap-2"><button onclick="closeModals()" class="px-4 py-2 text-sm bg-slate-700 rounded">Close</button></div>
+        </div>
+    </div>
+
+    <!-- Add Contact Modal -->
+    <div id="modal-add-contact" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-80 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-4">Add Contact</h3>
+            <div class="mb-4">
+                <label class="text-xs text-slate-400">Username</label>
+                <input type="text" id="add-contact-username" placeholder="Existing username" class="w-full bg-[#2a3942] text-sm p-2 rounded outline-none mt-1">
+            </div>
+            <p id="add-contact-error" class="text-red-400 text-xs mb-2"></p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm bg-slate-700 rounded">Cancel</button>
+                <button onclick="addContact()" class="px-4 py-2 text-sm btn-gold rounded">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Status Modal -->
+    <div id="modal-status" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700 text-center relative">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-lg font-bold mb-4">Contacts Status Updates</h3>
+            <div id="status-feed-container" class="space-y-4 max-h-60 overflow-y-auto">
+                <!-- Dynamic statuses -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Friend Requests Modal -->
+            <div id="modal-requests" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+                <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700">
+                    <h3 class="text-lg font-bold mb-4">Friend Requests</h3>
+                    <div id="requests-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    <div class="flex justify-end mt-4">
+                        <button onclick="closeModals()" class="px-3 py-1 bg-slate-700 rounded">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACAF Code Window Mail Modal -->
+            <div id="modal-code-window" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-[100] pointer-events-auto">
+                <div class="bg-[#0b1820] w-[900px] max-w-[95%] h-[80%] rounded-lg p-4 border border-slate-700 overflow-hidden flex flex-col">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 id="code-modal-title" class="text-lg font-bold">ACAF Code Window Mail</h3>
+                        <div class="flex gap-2">
+                            <select id="code-modal-lang" class="bg-[#071827] text-sm p-2 rounded text-white">
+                                <option value="javascript">javascript</option>
+                                <option value="python">python</option>
+                                <option value="html">html</option>
+                                <option value="css">css</option>
+                                <option value="json">json</option>
+                                <option value="text">text</option>
+                            </select>
+                            <button onclick="updateCodeLanguage(document.getElementById('modal-code-window').dataset.currentMail)" id="code-update-lang" class="px-3 py-1 text-sm border border-slate-600 rounded">Update Language</button>
+                            <button onclick="downloadCode(document.getElementById('modal-code-window').dataset.currentMail)" id="code-download-btn" class="px-3 py-1 text-sm btn-acaf rounded">Download</button>
+                            <button onclick="replyToCode()" class="px-3 py-1 text-sm btn-gold rounded">Insert Reply</button>
+                            <button onclick="closeModals()" class="px-3 py-1 text-sm bg-slate-700 rounded">Close</button>
+                        </div>
+                    </div>
+                    <div id="code-modal-from" class="text-xs text-slate-400 mb-2">From: ...</div>
+                    <div class="flex-1 overflow-auto bg-[#071827] p-3 rounded">
+                        <pre id="code-view-content" class="whitespace-pre-wrap text-sm font-mono text-white"></pre>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Group Manage Modal -->
+    <div id="modal-group-manage" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="bg-[#111b21] p-6 rounded-xl w-96 text-white border border-slate-700">
+            <h3 class="text-lg font-bold mb-4">Manage Group Members</h3>
+            <div class="mb-3">
+                <label class="text-xs text-slate-400">Group Name</label>
+                <div class="flex gap-2 mt-2">
+                    <input id="group-rename-input" type="text" class="flex-1 bg-[#2a3942] p-2 rounded text-sm outline-none" placeholder="Group name">
+                    <button id="group-rename-save" onclick="saveGroupName()" class="px-3 py-1 btn-acaf text-xs rounded">Save</button>
+                </div>
+            </div>
+            <div id="group-manage-list" class="max-h-56 overflow-y-auto mb-4"></div>
+            <div class="flex justify-end"><button onclick="closeModals()" class="px-3 py-1 bg-slate-700 rounded">Close</button></div>
+        </div>
+    </div>
+
+    <!-- Video Call UI Overlay Simulation -->
+    <div id="modal-video" class="fixed inset-0 bg-black/95 flex flex-col items-center justify-center hidden z-[100] pointer-events-auto">
+        <div class="relative w-[800px] h-[500px] bg-slate-900 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
+            <video id="remote-video" autoplay playsinline class="w-full h-full object-cover"></video>
+            <video id="local-video" autoplay muted playsinline class="absolute bottom-4 right-4 w-40 h-28 object-cover rounded-lg border-2 avatar-border"></video>
+            <div class="absolute bottom-6 flex gap-4">
+                <button onclick="endVideoCall()" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full w-14 h-14 flex items-center justify-center shadow-lg"><i class="fa-solid fa-phone-slash text-xl"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incoming call UI removed; keep friend-request spam detection only -->
+
+    <!-- ================= 4. APP SCRIPT LOGIC ================= -->
+    <script>
+        // Simulated Database State In-Memory (persisted to localStorage)
+        let db = {
+            users: [],
+            chats: [],
+            communities: [],
+            codeMailbox: [],
+            friendRequests: []
+        };
+
+        function saveDB(){
+            try{ localStorage.setItem('acaf_db_v1', JSON.stringify(db)); }catch(e){}
+        }
+
+        function loadDB(){
+            try{ const s = localStorage.getItem('acaf_db_v1'); if(!s) return; db = JSON.parse(s); }catch(e){}
+        }
+
+        // load persisted DB if present
+        loadDB();
+
+        // --- ADMIN: clear all accounts/chats so users can recreate accounts ---
+        // This will wipe users, chats and related data from the local DB on first load after this change.
+        function clearAllAccounts(){
+            db.users = [];
+            db.chats = [];
+            db.communities = [];
+            db.codeMailbox = [];
+            db.friendRequests = [];
+            db.gameScores = [];
+            db.reviews = [];
+            saveDB();
+            try{ localStorage.removeItem('acaf_workspace_v1'); }catch(e){}
+            console.warn('All accounts and chats cleared from local DB.');
+        }
+        // run once if an explicit marker not present
+        try{
+            if(!localStorage.getItem('acaf_cleared_accounts_v1')){
+                clearAllAccounts();
+                localStorage.setItem('acaf_cleared_accounts_v1','1');
+            }
+        }catch(e){ console.warn('clear marker check failed', e); }
+
+        let currentUser = null;
+        let activeChatId = null;
+        let activeCommunityFilter = null; // when set, restrict chat list to groups in this community
+        let authMode = 'login'; // 'login' or 'register'
+
+        // --- AUTH LOGIC ---
+        function switchAuthTab(mode) {
+            mode = mode === 'register' ? 'register' : 'login';
+            authMode = mode;
+            const btn = document.getElementById('auth-btn');
+            const regExtra = document.getElementById('reg-extra');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            if(!btn || !regExtra || !tabLogin || !tabRegister) return;
+
+            if(mode === 'login') {
+                btn.innerText = "Sign In";
+                regExtra.classList.add('hidden');
+                tabLogin.className = "flex-1 pb-2 font-semibold acaf-blue border-b-2 border-acaf-blue";
+                tabRegister.className = "flex-1 pb-2 font-semibold text-slate-400";
+            } else {
+                btn.innerText = "Create Account";
+                regExtra.classList.remove('hidden');
+                tabRegister.className = "flex-1 pb-2 font-semibold acaf-blue border-b-2 border-acaf-blue";
+                tabLogin.className = "flex-1 pb-2 font-semibold text-slate-400";
+            }
+        }
+
+        // Ensure auth UI reflects initial mode on load
+        try{ document.addEventListener('DOMContentLoaded', ()=>{ switchAuthTab(authMode); }); }catch(e){}
+
+        function handleAuthSubmit() {
+            const u = document.getElementById('auth-user').value.trim();
+            const p = document.getElementById('auth-pass').value.trim();
+            const pic = document.getElementById('auth-pic').value.trim();
+            const regFile = document.getElementById('reg-avatar-file');
+            const err = document.getElementById('auth-error');
+
+            if(!u || !p) {
+                err.innerText = "Please fill in all fields.";
+                return;
+            }
+
+            if(authMode === 'register') {
+                // Check if user exists
+                const existing = db.users.find(x => x.username.toLowerCase() === u.toLowerCase());
+                if(existing) {
+                    err.innerText = "Username is already taken! Choose another.";
+                    return;
+                }
+                // Require a profile picture (either URL or uploaded file)
+                if(!pic && !(regFile && regFile.files && regFile.files[0])) {
+                    err.innerText = "Please provide a profile picture URL or upload a file.";
+                    return;
+                }
+
+                const createAndInit = (finalPic) => {
+                    const newUser = { username: u, pass: p, pic: finalPic, status: "Hey there! I am using ACAF Chat.", contacts: [], tags: {} };
+                    db.users.push(newUser);
+                    saveDB();
+                    currentUser = newUser;
+                    initApp();
+                };
+
+                if(regFile && regFile.files && regFile.files[0]) {
+                    const f = regFile.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        createAndInit(ev.target.result);
+                    };
+                    reader.readAsDataURL(f);
+                    return;
+                }
+
+                // fallback to URL
+                createAndInit(pic);
+                saveDB();
+            } else {
+                // Login user
+                const found = db.users.find(x => x.username.toLowerCase() === u.toLowerCase() && x.pass === p);
+                if(!found) {
+                    err.innerText = "Invalid username or password.";
+                    return;
+                }
+                currentUser = found;
+                initApp();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            activeChatId = null;
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('chat-window').classList.add('hidden');
+            try{ renderProfileArea(); }catch(e){}
+        }
+
+        // --- APP INITIALIZATION ---
+        function initApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('sidebar').classList.remove('hidden');
+            // Always show chat/workspace panel so users can access Workspace (Code, Notes, Files)
+            // Show chat window only if a chat is active
+            if(activeChatId) document.getElementById('chat-window').classList.remove('hidden');
+
+            document.getElementById('my-avatar').src = currentUser.pic;
+            document.getElementById('my-username').innerText = currentUser.username;
+            try{ renderProfileArea(); }catch(e){}
+
+            // update friend requests badge
+            updateRequestsBadge();
+
+            // Ensure currentUser has contacts array
+            if(!Array.isArray(currentUser.contacts)) currentUser.contacts = [];
+            // No automatic chat creation here; chats are created when contacts/groups are added.
+
+            renderChatList();
+            try{ renderCommunitySidebarList(); }catch(e){}
+            // ensure workspace panels are rendered for the logged-in user
+            try{ renderCodePanel(); renderNotes(); renderFiles(); }catch(e){}
+            // initialize workspace tour (shows when workspace is empty)
+            try{ initWorkspaceTour(); }catch(e){}
+            try{ showFirstTimeReviewIfNeeded(); }catch(e){}
+            // show welcome animation on login
+            try{ showWelcomeAnimation(); }catch(e){}
+        }
+
+        // --- RENDER CHATS & LISTS ---
+        function renderChatList() {
+            const listEl = document.getElementById('chat-list');
+            listEl.innerHTML = '';
+
+            // Show chats where current user is a member (direct or group)
+            let visibleChats = currentUser
+                ? db.chats.filter(c => Array.isArray(c.members) && c.members.includes(currentUser.username))
+                : [];
+
+            // If a community filter is active, restrict to groups attached to that community
+            if(activeCommunityFilter){
+                const comm = db.communities.find(c=>c.id===activeCommunityFilter);
+                if(comm && Array.isArray(comm.groups)){
+                    visibleChats = visibleChats.filter(c => c.type==='group' && comm.groups.includes(c.id));
+                } else {
+                    visibleChats = [];
+                }
+            }
+
+            visibleChats.forEach(chat => {
+                let lastMsg = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text : "Click to start chatting";
+                const unreadCount = chat.unread && currentUser ? (chat.unread[currentUser.username] || 0) : 0;
+                let html = `
+                    <div onclick="selectChat('${chat.id}')" class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#202c33] transition ${activeChatId === chat.id ? 'bg-[#2a3942]' : ''}">
+                        <img src="${chat.avatar || 'https://i.pravatar.cc/150'}" class="w-12 h-12 rounded-full object-cover">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline">
+                                <h4 class="text-white font-medium text-sm truncate">${chat.name}</h4>
+                                <div class="text-xs text-slate-400">${unreadCount>0?'<span class="text-xs bg-[#0b6ef6] text-white px-2 py-0.5 rounded-full">'+unreadCount+'</span>':''}</div>
+                            </div>
+                            <p class="text-xs text-slate-400 truncate mt-0.5">${lastMsg}</p>
+                        </div>
+                    </div>
+                `;
+                listEl.innerHTML += html;
+            });
+        }
+
+        function selectChat(id) {
+            activeChatId = id;
+            const chat = db.chats.find(c => c.id === id);
+            if(!chat) return;
+            // ensure chat window is visible when a chat is selected
+            document.getElementById('chat-window').classList.remove('hidden');
+            const tagBtn = document.getElementById('tag-office-btn');
+            // For direct chats, set name and avatar to other participant
+            if(chat.type === 'direct' && Array.isArray(chat.members)) {
+                const other = chat.members.find(m => m !== currentUser.username) || chat.members[0];
+                const userRec = db.users.find(u => u.username === other);
+                document.getElementById('active-chat-name').innerText = userRec ? userRec.username : chat.name;
+                document.getElementById('active-chat-avatar').src = userRec ? userRec.pic : chat.avatar;
+                document.getElementById('active-chat-status').innerText = userRec ? 'online' : 'offline';
+            } else {
+                document.getElementById('active-chat-name').innerText = chat.name;
+                document.getElementById('active-chat-avatar').src = chat.avatar;
+                document.getElementById('active-chat-status').innerText = chat.type === 'group' ? 'Group chat' : 'online';
+            }
+            // Show tag button for direct chats
+            if(chat.type === 'direct' && Array.isArray(chat.members)){
+                const other = chat.members.find(m=>m!==currentUser.username);
+                const urec = db.users.find(u=>u.username===other);
+                const tagBtn = document.getElementById('tag-office-btn');
+                if(urec){ tagBtn.classList.remove('hidden'); tagBtn.innerText = urec.tags && urec.tags.office ? 'Office ✓' : 'Tag Office'; tagBtn.dataset.target = other; }
+                else { tagBtn.classList.add('hidden'); }
+            } else { tagBtn.classList.add('hidden'); }
+            // clear unread for current user on open
+            if(chat.unread && currentUser && chat.unread[currentUser.username]){
+                chat.unread[currentUser.username] = 0;
+                saveDB();
+                renderChatList();
+            }
+
+            renderChatList();
+            renderMessages();
+            // Show/hide action buttons based on chat type and permissions
+            const unfriendBtn = document.getElementById('unfriend-btn');
+            const leaveBtn = document.getElementById('leave-group-btn');
+            const manageBtn = document.getElementById('manage-group-btn');
+            if(chat.type === 'direct'){
+                if(unfriendBtn) unfriendBtn.classList.remove('hidden');
+                if(leaveBtn) leaveBtn.classList.add('hidden');
+                if(manageBtn) manageBtn.classList.add('hidden');
+                if(tagBtn) tagBtn.classList.remove('hidden');
+            } else if(chat.type === 'group'){
+                if(unfriendBtn) unfriendBtn.classList.add('hidden');
+                if(leaveBtn) leaveBtn.classList.remove('hidden');
+                // show manage if currentUser is admin
+                const isAdmin = chat.admins && chat.admins.includes(currentUser.username);
+                if(manageBtn) { if(isAdmin) manageBtn.classList.remove('hidden'); else manageBtn.classList.add('hidden'); }
+                if(tagBtn) tagBtn.classList.add('hidden');
+            } else {
+                if(unfriendBtn) unfriendBtn.classList.add('hidden');
+                if(leaveBtn) leaveBtn.classList.add('hidden');
+                if(manageBtn) manageBtn.classList.add('hidden');
+                if(tagBtn) tagBtn.classList.add('hidden');
+            }
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('message-container');
+            container.innerHTML = '';
+
+            const chat = db.chats.find(c => c.id === activeChatId);
+            if(!chat) return;
+
+            chat.messages.forEach((msg, i) => {
+                let isMe = msg.sender === currentUser.username;
+                let bubbleClass = isMe ? 'message-bubble bubble-me ml-auto' : 'message-bubble message-other mr-auto';
+
+                // attach data-msg and onclick to allow saving message to notes
+                // build reactions UI
+                let reactionsHtml = '';
+                if(msg.reactions){
+                    Object.keys(msg.reactions).forEach(r => {
+                        const users = msg.reactions[r];
+                        reactionsHtml += `<button onclick="toggleReaction('${chat.id}', ${i}, '${r}')" class=\"text-xs px-2 py-0.5 rounded bg-[#0b1220] mr-1\">${r} ${users.length>0?users.length:''}</button>`;
+                    });
+                }
+
+                // edit/delete controls for own messages
+                let controls = '';
+                if(isMe){
+                    controls = `<div class="mt-1 flex gap-2"><button onclick="editMessage('${chat.id}', ${i})" class="text-xs px-2 py-0.5 rounded bg-slate-700">Edit</button><button onclick="deleteMessage('${chat.id}', ${i})" class="text-xs px-2 py-0.5 rounded bg-red-700">Delete</button></div>`;
+                }
+
+                let html = `
+                    <div id="msg-${chat.id}-${i}" class="flex flex-col max-w-[65%] ${isMe ? 'items-end' : 'items-start'} ${msg._justSent ? ' send-pop' : ''}">
+                        <div onclick="saveMessageToNotes('${escapeHtml(msg.text)}','${msg.sender.replace(/'/g, "\\'") }')" class="rounded-lg text-sm shadow ${bubbleClass} break-words cursor-pointer" title="Click to save to notes">
+                            ${!isMe && chat.type === 'group' ? `<span class="text-xs acaf-blue block font-bold mb-1">${msg.sender}</span>` : ''}
+                            <div class="px-3 py-2">${msg.text}</div>
+                            ${msg.edited?`<div class="text-xs text-slate-400 mt-1">Edited by ${escapeHtml(msg.edited.by)} at ${new Date(msg.edited.at).toLocaleString()}</div>`:''}
+                        </div>
+                        <div id="reactions-${chat.id}-${i}" class="mt-2">${reactionsHtml}<button onclick="toggleReaction('${chat.id}', ${i}, '👍')" class="text-xs px-2 py-0.5 rounded bg-[#071827]">👍</button><button onclick="toggleReaction('${chat.id}', ${i}, '❤️')" class="text-xs px-2 py-0.5 rounded bg-[#071827] ml-1">❤️</button></div>
+                        ${controls}
+                    </div>
+                `;
+                container.innerHTML += html;
+                // If message was just sent, clear the flag shortly after animating
+                if(msg._justSent){
+                    (function(localChat, idx){ setTimeout(()=>{ try{ const el = document.getElementById(`msg-${localChat.id}-${idx}`); if(el) el.classList.remove('send-pop'); delete localChat.messages[idx]._justSent; saveDB(); }catch(e){} }, 800); })(chat, i);
+                }
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            if(!activeChatId) return;
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            // enforce 1000-word limit for normal chat messages
+            const wordCount = text.split(/\s+/).filter(Boolean).length;
+            if(wordCount > 1000){ showToast('Message too long', `Messages are limited to 1000 words. Your message has ${wordCount} words.`); return; }
+
+            const chat = db.chats.find(c => c.id === activeChatId);
+            // ensure message object has reactions map
+            const msgObj = { sender: currentUser.username, text: text, reactions: {}, _justSent: true };
+            chat.messages.push(msgObj);
+            input.value = '';
+
+            renderMessages();
+            renderChatList();
+            // update unread counts for other members and persist
+            if(Array.isArray(chat.members)){
+                chat.unread = chat.unread || {};
+                chat.members.forEach(m => { if(m !== currentUser.username){ chat.unread[m] = (chat.unread[m]||0) + 1; }});
+            }
+            saveDB();
+            notifyForMessage(activeChatId, { sender: currentUser.username, text });
+        }
+
+        function handleMessageKeydown(e) {
+            const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints>0) || /Mobi|Android|iPad|iPhone/i.test(navigator.userAgent));
+            if(!isTouch){
+                if(e.key === 'Enter' && !e.shiftKey){
+                    e.preventDefault();
+                    sendMessage();
+                }
+            } else {
+                // On touch devices, Enter should insert newline; provide Send button instead
+                return;
+            }
+        }
+
+        // --- EMOJI PICKER HANDLING ---
+        function toggleEmojiPicker() {
+            const pickerContainer = document.getElementById('emoji-picker-container');
+            pickerContainer.classList.toggle('hidden');
+        }
+
+        const _emojiPicker = document.querySelector('emoji-picker');
+        if(_emojiPicker){
+            _emojiPicker.addEventListener('emoji-click', event => {
+                const input = document.getElementById('message-input');
+                if(input) input.value += event.detail.unicode;
+                const pc = document.getElementById('emoji-picker-container'); if(pc) pc.classList.add('hidden');
+            });
+        }
+
+        // --- MODAL CONTROLS ---
+        function openProfileModal() {
+            if(!currentUser) { showToast('Auth','Please sign in to edit your profile.'); return; }
+            document.getElementById('modal-profile').classList.remove('hidden');
+            document.getElementById('modal-avatar-preview').src = currentUser.pic;
+            document.getElementById('edit-avatar-url').value = currentUser.pic;
+            document.getElementById('edit-status-text').value = currentUser.status;
+            const fileInput = document.getElementById('edit-avatar-file');
+            if(fileInput) fileInput.value = '';
+        }
+
+        function previewAvatarFile(e) {
+            const f = e.target.files && e.target.files[0];
+            if(!f) return;
+            const preview = document.getElementById('modal-avatar-preview');
+            try {
+                preview.src = URL.createObjectURL(f);
+            } catch(err) {
+                const reader = new FileReader();
+                reader.onload = ev => preview.src = ev.target.result;
+                reader.readAsDataURL(f);
+            }
+            // update filename display in profile modal
+            const fnameEl = document.getElementById('edit-avatar-filename');
+            if(fnameEl) fnameEl.innerText = f.name || '';
+        }
+
+        function handleRegAvatarFile(e){
+            const f = e.target.files && e.target.files[0];
+            const fnameEl = document.getElementById('reg-avatar-filename');
+            if(fnameEl) fnameEl.innerText = f ? f.name : '';
+        }
+
+        // Workspace panel helpers
+        function showPanelTab(tab){
+            ['notes','files','templates','code','tools'].forEach(t=>{
+                const el = document.getElementById('panel-'+t);
+                if(el) el.classList.toggle('hidden', t!==tab);
+            });
+        }
+
+        function escapeHtml(str){
+            if(!str) return '';
+            return str.replace(/[\\"'<>]/g, function(c){ return {'&':'&amp;','"':'&quot;',"'":"&#39;","<":"&lt;",">":"&gt;"}[c] || c; });
+        }
+
+        function saveMessageToNotes(text, sender){
+            const noteText = sender + ': ' + text;
+            document.getElementById('note-input').value = noteText;
+            addNote();
+            showPanelTab('notes');
+        }
+
+        function toggleReaction(chatId, msgIndex, emoji){
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            const msg = chat.messages[msgIndex];
+            if(!msg) return;
+            msg.reactions = msg.reactions || {};
+            msg.reactions[emoji] = msg.reactions[emoji] || [];
+            const arr = msg.reactions[emoji];
+            const idx = arr.indexOf(currentUser.username);
+            if(idx === -1) arr.push(currentUser.username); else arr.splice(idx,1);
+            saveDB();
+            renderMessages();
+            // add small pop animation to reactions container
+            setTimeout(()=>{
+                try{ const el = document.getElementById(`reactions-${chatId}-${msgIndex}`); if(el){ el.classList.add('reaction-pop'); setTimeout(()=>el.classList.remove('reaction-pop'),600); } }catch(e){}
+            },50);
+        }
+
+        function loadWorkspace(){
+            try{
+                const raw = localStorage.getItem('acaf_workspace_v1');
+                if(!raw) return {notes:[], files:[], templates:[]};
+                return JSON.parse(raw);
+            }catch(e){return {notes:[], files:[], templates:[]};}
+        }
+
+        function saveWorkspace(ws){ localStorage.setItem('acaf_workspace_v1', JSON.stringify(ws)); }
+
+        function renderNotes(){
+            const ws = loadWorkspace();
+            const list = document.getElementById('notes-list'); if(!list) return;
+            list.innerHTML = '';
+            ws.notes.slice().reverse().forEach((n,i)=>{
+                const idx = ws.notes.length -1 - i;
+                const el = document.createElement('div');
+                el.className = 'bg-[#071827] p-2 rounded flex justify-between items-start gap-2';
+                el.innerHTML = `<div class="text-sm break-words">${escapeHtml(n)}</div><div class=\"flex gap-1\"><button onclick=\"deleteNote(${idx})\" class=\"px-2 py-1 text-xs text-slate-300\">Delete</button></div>`;
+                list.appendChild(el);
+            });
+        }
+
+        // --- Workspace Tools: Button Tester ---
+        function scanButtonsReport(includeAnchors){
+            const resultsEl = document.getElementById('button-tester-results'); if(!resultsEl) return [];
+            resultsEl.innerHTML = '';
+            const buttons = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'));
+            const anchors = includeAnchors ? Array.from(document.querySelectorAll('a[href], [onclick]')) : [];
+            const items = buttons.concat(anchors).filter((v,i,a)=>a.indexOf(v)===i);
+            const report = [];
+            items.forEach(el => {
+                let label = el.innerText || el.getAttribute('aria-label') || el.getAttribute('title') || el.id || el.tagName.toLowerCase();
+                label = label.trim().slice(0,80) || '(no label)';
+                const hasOnclick = !!el.getAttribute('onclick');
+                const hasHandler = hasOnclick || (el.tagName.toLowerCase() === 'button' && el.onclick) || false;
+                report.push({label, id: el.id||'', tag: el.tagName.toLowerCase(), hasOnclick, hasHandler});
+                const row = document.createElement('div'); row.className='flex justify-between items-center bg-[#071827] p-2 rounded';
+                row.innerHTML = `<div class="truncate"><strong>${escapeHtml(label)}</strong> <span class="text-xs text-slate-400">(${escapeHtml(el.tagName.toLowerCase())}${el.id? ' #'+escapeHtml(el.id):''})</span></div><div class="text-xs">${hasHandler? '<span style="color:#6ee7b7">OK</span>':'<span style="color:#fca5a5">No handler</span>'}</div>`;
+                resultsEl.appendChild(row);
+            });
+            if(items.length===0) resultsEl.innerHTML = '<div class="text-xs text-slate-500">No interactive controls found on the page.</div>';
+            return report;
+        }
+
+        function runButtonTester(){
+            // run default scan (buttons only)
+            const res = scanButtonsReport(false);
+            showPanelTab('tools');
+            if(res.length>0){ showToast('Tester','Scanned '+res.length+' controls — see results.'); }
+            else { showToast('Tester','No controls found.'); }
+        }
+
+        function addNote(){
+            const input = document.getElementById('note-input');
+            const v = input.value.trim(); if(!v) return;
+            const ws = loadWorkspace(); ws.notes = ws.notes || []; ws.notes.push(v); saveWorkspace(ws); input.value = '';
+            renderNotes();
+        }
+
+        function deleteNote(idx){ const ws = loadWorkspace(); ws.notes.splice(idx,1); saveWorkspace(ws); renderNotes(); }
+
+        function renderFiles(){
+            const ws = loadWorkspace();
+            const list = document.getElementById('files-list'); if(!list) return; list.innerHTML=''; ws.files=(ws.files||[]);
+            ws.files.slice().reverse().forEach((f,i)=>{
+                const idx = ws.files.length-1-i;
+                const el = document.createElement('div');
+                el.className = 'bg-[#071827] p-2 rounded flex items-center justify-between gap-2';
+                let preview = '';
+                if(typeof f.data === 'string' && f.data.startsWith('data:image')){
+                    preview = `<img src="${f.data}" class="w-12 h-8 object-cover rounded mr-2">`;
+                }
+                el.innerHTML = `<div class="flex items-center gap-2"><div>${preview}</div><div class=\"text-sm truncate max-w-[140px]\">${escapeHtml(f.name)}</div></div><div class=\"flex gap-2\"><a href=\"${f.data}\" download=\"${escapeHtml(f.name)}\" class=\"text-xs btn-acaf px-2 py-1 rounded\">Download</a><button onclick=\"deleteFile(${idx})\" class=\"text-xs text-slate-300\">Del</button></div>`;
+                list.appendChild(el);
+            });
+        }
+
+            // --- WORKSPACE TOUR (simulated AI 'video' with slides + speech and optional MP4 upload) ---
+            const wsTourSlides = [
+                { title: 'Welcome to ACAF Workspace', desc: 'This brief tour shows where to save notes, upload files, and share code. It only appears in empty workspaces.', media: '<svg width="120" height="72" viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect rx="8" width="120" height="72" fill="#071827" stroke="#0b74ff"/></svg>' },
+                { title: 'Notes', desc: 'Save any message as a note or create quick workspace notes here for later.', media: '<svg width="120" height="72" viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect rx="6" width="120" height="72" fill="#071827" stroke="#f5c254"/></svg>' },
+                { title: 'Files', desc: 'Upload files and download them from any device. Files are stored locally in your browser.', media: '<svg width="120" height="72" viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect rx="6" width="120" height="72" fill="#071827" stroke="#4fd1ff"/></svg>' },
+                { title: 'Code Mailbox', desc: 'Share code snippets using the Code tab — open, highlight, and download code from here.', media: '<svg width="120" height="72" viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg"><rect rx="6" width="120" height="72" fill="#071827" stroke="#d4a017"/></svg>' }
+            ];
+            let wsTourIndex = 0;
+            let wsTourTimer = null;
+            let wsTourPlaying = false;
+            let wsUsingVideoFile = false;
+
+            function initWorkspaceTour(){
+                try{
+                    const el = document.getElementById('workspace-tour'); if(!el) return;
+                    if(!currentUser){ el.classList.add('hidden'); return; }
+                    const ws = loadWorkspace();
+                    const hasNotes = ws.notes && ws.notes.length>0;
+                    const hasFiles = ws.files && ws.files.length>0;
+                    const hasCode = (db.codeMailbox||[]).some(m => (m.to && currentUser && m.to.toLowerCase()===currentUser.username.toLowerCase()) || (m.from && m.from===currentUser.username));
+                    // show tour only when workspace is empty
+                    if(hasNotes || hasFiles || hasCode){ el.classList.add('hidden'); return; }
+                    // show tour box (user can play it)
+                    el.classList.remove('hidden');
+                    document.getElementById('ws-tour-play').innerText = 'Play';
+                    document.getElementById('ws-tour-pause').classList.add('hidden');
+                    wsTourIndex = 0; wsTourPlaying = false; clearTimeout(wsTourTimer);
+                    wsTourLoadSavedVideo();
+                    updateWsTourUI();
+                }catch(e){ console.warn('initWorkspaceTour err',e); }
+            }
+
+            function updateWsTourUI(){
+                const slide = wsTourSlides[wsTourIndex] || wsTourSlides[0];
+                const title = document.getElementById('ws-tour-title');
+                const desc = document.getElementById('ws-tour-desc');
+                const media = document.getElementById('ws-tour-media');
+                const prog = document.getElementById('ws-tour-progress');
+                if(title) title.innerText = slide.title;
+                if(desc) desc.innerText = slide.desc;
+                if(media) media.innerHTML = slide.media || '';
+                if(prog) prog.innerText = `${wsTourIndex+1} / ${wsTourSlides.length}`;
+            }
+
+            function wsTourPlay(){
+                if(wsTourPlaying) return;
+                const video = document.getElementById('ws-tour-video');
+                // if a video file is loaded, play the video; otherwise play slides
+                if(wsUsingVideoFile && video && video.src){
+                    wsTourPlaying = true;
+                    document.getElementById('ws-tour-play').classList.add('hidden');
+                    document.getElementById('ws-tour-pause').classList.remove('hidden');
+                    try{ video.play(); }catch(e){}
+                    // sync progress updates
+                    video.ontimeupdate = ()=>{ updateVideoProgress(); };
+                    video.onended = ()=>{ wsTourPause(); };
+                    return;
+                }
+                if(wsTourPlaying) return;
+                wsTourPlaying = true;
+                document.getElementById('ws-tour-play').classList.add('hidden');
+                document.getElementById('ws-tour-pause').classList.remove('hidden');
+                playSlide();
+            }
+
+            function wsTourPause(){
+                const video = document.getElementById('ws-tour-video');
+                wsTourPlaying = false;
+                document.getElementById('ws-tour-play').classList.remove('hidden');
+                document.getElementById('ws-tour-pause').classList.add('hidden');
+                if(wsTourTimer) { clearTimeout(wsTourTimer); wsTourTimer = null; }
+                try{ speechSynthesis.cancel(); }catch(e){}
+                try{ if(video && !video.paused) video.pause(); }catch(e){}
+            }
+
+            function playSlide(){
+                updateWsTourUI();
+                const slide = wsTourSlides[wsTourIndex];
+                // speak slide text (if supported)
+                try{
+                    if('speechSynthesis' in window){
+                        speechSynthesis.cancel();
+                        const s = new SpeechSynthesisUtterance(`${slide.title}. ${slide.desc}`);
+                        s.rate = 1.0; s.pitch = 1.0; s.lang = 'en-US';
+                        speechSynthesis.speak(s);
+                    }
+                }catch(e){}
+                // auto-advance after a few seconds if playing
+                if(wsTourPlaying){ wsTourTimer = setTimeout(()=>{ wsTourNext(); }, 4200); }
+            }
+
+            function wsTourNext(){
+                const video = document.getElementById('ws-tour-video');
+                if(wsUsingVideoFile && video && video.src){
+                    // jump to end when next called during video
+                    try{ video.currentTime = video.duration || video.currentTime; }catch(e){}
+                    wsTourPause(); return;
+                }
+                if(wsTourIndex < wsTourSlides.length-1){ wsTourIndex++; updateWsTourUI(); if(wsTourPlaying) playSlide(); }
+                else { // finished
+                    wsTourClose(true);
+                }
+            }
+
+            function wsTourPrev(){
+                const video = document.getElementById('ws-tour-video');
+                if(wsUsingVideoFile && video && video.src){ try{ video.currentTime = Math.max(0, (video.currentTime||0)-10); }catch(e){}; return; }
+                if(wsTourIndex > 0){ wsTourIndex--; updateWsTourUI(); if(wsTourPlaying) playSlide(); }
+            }
+
+            function wsTourClose(markWatched){
+                wsTourPause();
+                const el = document.getElementById('workspace-tour'); if(!el) return;
+                el.classList.add('hidden');
+                if(markWatched && currentUser){ localStorage.setItem('acaf_ws_tour_v1_' + currentUser.username, 'watched'); showToast('Tour','Thanks for watching the workspace tour.'); }
+            }
+
+            // video helpers
+            function wsTourUploadFile(e){
+                const f = e.target.files && e.target.files[0]; if(!f) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const ws = loadWorkspace(); ws.tourVideo = ev.target.result; saveWorkspace(ws);
+                    wsTourLoadSavedVideo(); showToast('Tour','Video uploaded and saved to workspace.');
+                };
+                reader.readAsDataURL(f);
+            }
+
+            function wsTourLoadSavedVideo(){
+                const ws = loadWorkspace(); const video = document.getElementById('ws-tour-video'); if(!video) return;
+                if(ws && ws.tourVideo){ video.src = ws.tourVideo; wsUsingVideoFile = true; document.getElementById('ws-tour-media').classList.add('hidden'); } else { video.removeAttribute('src'); video.load(); wsUsingVideoFile = false; document.getElementById('ws-tour-media').classList.remove('hidden'); }
+            }
+
+            function updateVideoProgress(){
+                const video = document.getElementById('ws-tour-video'); if(!video || !video.duration) return; const pct = (video.currentTime / video.duration) * 100; document.getElementById('ws-tour-bar-fill').style.width = pct + '%'; document.getElementById('ws-tour-progress').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+            }
+
+            function wsTourSeek(deltaSeconds){ const video = document.getElementById('ws-tour-video'); if(video && wsUsingVideoFile){ try{ video.currentTime = Math.max(0, (video.currentTime||0) + deltaSeconds); }catch(e){}; }
+                else { // for slides, next/prev behavior
+                    if(deltaSeconds<0) wsTourPrev(); else wsTourNext(); }
+            }
+
+            function wsTourSeekToEvent(evt){ const bar = document.getElementById('ws-tour-bar'); const rect = bar.getBoundingClientRect(); const x = evt.clientX - rect.left; const pct = Math.max(0, Math.min(1, x / rect.width)); const video = document.getElementById('ws-tour-video'); if(video && wsUsingVideoFile && video.duration){ video.currentTime = pct * video.duration; updateVideoProgress(); } }
+
+            function wsTourSetVolume(v){ const video = document.getElementById('ws-tour-video'); if(video){ video.volume = parseFloat(v); } }
+
+            function wsTourFullscreen(){ const container = document.getElementById('workspace-tour'); if(container.requestFullscreen) container.requestFullscreen(); else if(container.webkitRequestFullscreen) container.webkitRequestFullscreen(); }
+
+            function wsTourUseSlides(){ // switch back to slides
+                const ws = loadWorkspace(); if(ws && ws.tourVideo){ delete ws.tourVideo; saveWorkspace(ws); }
+                wsUsingVideoFile = false; wsTourLoadSavedVideo(); updateWsTourUI(); showToast('Tour','Using animated slides fallback.');
+            }
+
+            function formatTime(sec){ if(!sec && sec!==0) return '0:00'; const s = Math.floor(sec%60); const m = Math.floor(sec/60); return m+':'+(s<10?'0'+s:s); }
+
+            // Game removed per request
+
+            // --- FIRST-TIMER REVIEW SYSTEM ---
+            function showFirstTimeReviewIfNeeded(){
+                if(!currentUser) return;
+                // if user already reviewed, skip
+                if(currentUser.hasReviewed) return;
+                // only prompt if no workspace content
+                const ws = loadWorkspace();
+                const hasNotes = ws.notes && ws.notes.length>0;
+                const hasFiles = ws.files && ws.files.length>0;
+                const hasCode = (db.codeMailbox||[]).some(m => (m.to && currentUser && m.to.toLowerCase()===currentUser.username.toLowerCase()) || (m.from && m.from===currentUser.username));
+                if(hasNotes || hasFiles || hasCode) return;
+                // show prompt
+                const el = document.getElementById('first-time-review'); if(!el) return; el.classList.remove('hidden');
+                // default stars 5
+                setReviewStars(5);
+            }
+
+            let _pendingStars = 5;
+            function setReviewStars(n){ _pendingStars = Math.max(1, Math.min(5, n)); const ctr = document.getElementById('review-stars'); if(!ctr) return; const btns = ctr.querySelectorAll('button'); btns.forEach((b,i)=>{ b.innerText = (i < _pendingStars) ? '★' : '☆'; }); }
+
+            function submitFirstTimeReview(){
+                if(!currentUser) { showToast('Auth','Please sign in to submit a review.'); return; }
+                const comment = (document.getElementById('review-comment').value||'').trim();
+                db.reviews = db.reviews || [];
+                const r = { id: 'rev_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), user: currentUser.username, stars: _pendingStars, comment: comment, createdAt: new Date().toISOString() };
+                db.reviews.push(r); saveDB();
+                currentUser.hasReviewed = true; // mark user as reviewed
+                saveDB();
+                const el = document.getElementById('first-time-review'); if(el) el.classList.add('hidden');
+                showToast('Thanks','Your review has been saved.');
+            }
+
+            function skipFirstTimeReview(){ if(!currentUser) { showToast('Auth','Please sign in'); return; } currentUser.hasReviewed = false; localStorage.setItem('acaf_ws_tour_v1_'+currentUser.username+'_skipped','1'); const el=document.getElementById('first-time-review'); if(el) el.classList.add('hidden'); }
+
+            function openReviewsPanel(){
+                // show a simple modal listing reviews
+                const modalId = 'modal-reviews';
+                let modal = document.getElementById(modalId);
+                if(!modal){
+                    modal = document.createElement('div'); modal.id = modalId; modal.className='fixed inset-0 bg-black/60 flex items-center justify-center z-60';
+                    modal.innerHTML = `<div class="bg-[#111b21] p-4 rounded w-96 text-white border border-slate-700"><h3 class="font-bold mb-2">Workspace Reviews</h3><div id="reviews-list" class="max-h-64 overflow-y-auto space-y-2 mb-3"></div><div class="flex justify-end"><button onclick="document.getElementById('${modalId}').remove()" class="px-3 py-1 bg-slate-700 rounded">Close</button></div></div>`;
+                    document.body.appendChild(modal);
+                }
+                // populate
+                const list = document.getElementById('reviews-list'); if(!list) return; list.innerHTML = '';
+                const revs = (db.reviews||[]).slice().reverse();
+                if(revs.length===0) list.innerHTML = '<div class="text-xs text-slate-400">No reviews yet.</div>';
+                revs.forEach(r=>{
+                    const el = document.createElement('div'); el.className='bg-[#071827] p-2 rounded'; el.innerHTML = `<div class="flex items-center justify-between"><div class="font-semibold">${escapeHtml(r.user)}</div><div class="text-sm">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div></div><div class="text-xs text-slate-300 mt-1">${escapeHtml(r.comment||'')}</div><div class="text-xs text-slate-500 mt-1">${new Date(r.createdAt).toLocaleString()}</div>`; list.appendChild(el);
+                });
+            }
+
+        // --- CODE MAILBOX FUNCTIONS ---
+        function clearCodeCompose(){
+            document.getElementById('code-to').value = '';
+            document.getElementById('code-title').value = '';
+            document.getElementById('code-content').value = '';
+            document.getElementById('code-lang').value = 'javascript';
+        }
+
+        function sendCodeMail(){
+            if(!currentUser) { showToast('Auth', 'Please sign in to send code.'); return; }
+            const to = document.getElementById('code-to').value.trim();
+            const title = document.getElementById('code-title').value.trim();
+            const code = document.getElementById('code-content').value;
+            const lang = document.getElementById('code-lang').value || 'text';
+            if(!to || !code) { showToast('Code Mail', 'Recipient and code are required.'); return; }
+            const mail = {
+                id: 'mail_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+                from: currentUser.username,
+                to: to,
+                title: title || '(no title)',
+                language: lang,
+                code: code,
+                createdAt: new Date().toISOString(),
+                readBy: []
+            };
+            db.codeMailbox = db.codeMailbox || [];
+            db.codeMailbox.push(mail);
+            saveDB();
+            showToast('Code Mail', `Sent to ${to}`);
+            clearCodeCompose();
+            renderCodePanel();
+        }
+
+        function renderCodePanel(){
+            const list = document.getElementById('code-mail-list'); if(!list) return;
+            list.innerHTML = '';
+            if(!currentUser) return;
+            db.codeMailbox = db.codeMailbox || [];
+            // show mails addressed to current user or to 'all'
+            const inbox = db.codeMailbox.filter(m => m.to.toLowerCase() === currentUser.username.toLowerCase() || m.to.toLowerCase() === 'all' || m.from === currentUser.username);
+            inbox.slice().reverse().forEach(m => {
+                const isUnread = !(m.readBy && m.readBy.includes(currentUser.username)) && m.from !== currentUser.username;
+                const el = document.createElement('div');
+                el.className = 'bg-[#071827] p-2 rounded flex items-center justify-between';
+                el.innerHTML = `<div class="min-w-0"><div class="flex items-center gap-2"><strong class="text-sm truncate">${escapeHtml(m.title)}</strong>${isUnread?'<span class="text-xs bg-[#0b6ef6] text-white px-2 py-0.5 rounded ml-2">New</span>':''}<span class="text-xs border border-slate-600 text-slate-300 px-2 py-0.5 rounded ml-2">${escapeHtml(m.language)}</span></div><div class="text-xs text-slate-400">From: ${escapeHtml(m.from)} · ${new Date(m.createdAt).toLocaleString()}</div></div><div class="flex gap-2"><button onclick="openCodeWindow('${m.id}')" class="px-2 py-1 text-xs btn-acaf rounded">View</button><button onclick="downloadCode('${m.id}')" class="px-2 py-1 text-xs border border-slate-600 rounded">Download</button></div>`;
+                list.appendChild(el);
+            });
+        }
+
+        function openCodeWindow(id){
+            const mail = (db.codeMailbox||[]).find(m=>m.id===id);
+            if(!mail) return;
+            // mark read for current user
+            mail.readBy = mail.readBy || [];
+            if(currentUser && !mail.readBy.includes(currentUser.username)) mail.readBy.push(currentUser.username);
+            saveDB();
+            renderCodePanel();
+            // show modal
+            const modal = document.getElementById('modal-code-window');
+            if(!modal) return;
+            modal.classList.remove('hidden');
+            // animate modal card
+            try{ const card = modal.querySelector('div'); if(card){ card.classList.remove('modal-scale-in'); void card.offsetWidth; card.classList.add('modal-scale-in'); setTimeout(()=>card.classList.remove('modal-scale-in'),900); } }catch(e){}
+            document.getElementById('code-modal-title').innerText = mail.title + ' — ' + mail.language;
+            document.getElementById('code-modal-from').innerText = 'From: ' + mail.from + '  •  To: ' + mail.to + '  •  ' + new Date(mail.createdAt).toLocaleString();
+            const pre = document.getElementById('code-view-content');
+            pre.innerHTML = `<code class="language-${escapeHtml(mail.language||'text')}">${escapeHtml(mail.code)}</code>`;
+            // highlight
+            try{ const codeEl = pre.querySelector('code'); if(window.hljs && codeEl) hljs.highlightElement(codeEl); }catch(e){}
+            modal.dataset.currentMail = id;
+            // set modal language select
+            const sel = document.getElementById('code-modal-lang'); if(sel) sel.value = mail.language || 'text';
+        }
+
+        function downloadCode(id){
+            const mail = (db.codeMailbox||[]).find(m=>m.id===id);
+            if(!mail) return;
+            const blob = new Blob([mail.code], {type: 'text/plain;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeTitle = mail.title.replace(/[^a-z0-9\-_\.]/gi,'_').slice(0,60) || 'code';
+            a.download = `${safeTitle}.${(mail.language||'txt')}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function replyToCode(){
+            const modal = document.getElementById('modal-code-window');
+            if(!modal || !modal.dataset.currentMail) return;
+            const id = modal.dataset.currentMail;
+            const mail = (db.codeMailbox||[]).find(m=>m.id===id);
+            if(!mail) return;
+            // insert code into message input for quick send
+            const input = document.getElementById('message-input');
+            if(!input) return;
+            input.value = `Reply to ${mail.from}:\n` + mail.code;
+            input.focus();
+            // close modal
+            modal.classList.add('hidden');
+        }
+
+        // --- Message edit / delete ---
+        function editMessage(chatId, msgIndex){
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            const msg = chat.messages[msgIndex];
+            if(!msg) return;
+            if(msg.sender !== currentUser.username) return;
+            const newText = prompt('Edit message:', msg.text);
+            if(newText === null) return; // cancelled
+            const wordCount = newText.split(/\s+/).filter(Boolean).length;
+            if(wordCount > 1000){ showToast('Message too long', `Messages are limited to 1000 words. Your message has ${wordCount} words.`); return; }
+            msg.text = newText;
+            msg.edited = { by: currentUser.username, at: new Date().toISOString() };
+            saveDB();
+            renderMessages();
+            renderChatList();
+        }
+
+        function deleteMessage(chatId, msgIndex){
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            const msg = chat.messages[msgIndex];
+            if(!msg) return;
+            if(msg.sender !== currentUser.username) return;
+            if(!confirm('Delete this message?')) return;
+            chat.messages.splice(msgIndex,1);
+            saveDB();
+            renderMessages();
+            renderChatList();
+        }
+
+        function updateCodeLanguage(id){
+            const lang = document.getElementById('code-modal-lang').value;
+            if(!id) return;
+            const mail = (db.codeMailbox||[]).find(m=>m.id===id);
+            if(!mail) return;
+            mail.language = lang;
+            saveDB();
+            renderCodePanel();
+            // update modal title and language badge
+            document.getElementById('code-modal-title').innerText = mail.title + ' — ' + mail.language;
+            // update code block class and re-highlight if modal open
+            const pre = document.getElementById('code-view-content');
+            if(pre){ pre.innerHTML = `<code class="language-${escapeHtml(mail.language||'text')}">${escapeHtml(mail.code)}</code>`; try{ const codeEl = pre.querySelector('code'); if(window.hljs && codeEl) hljs.highlightElement(codeEl); }catch(e){} }
+            showToast('Code Mail', 'Language updated');
+        }
+
+
+        function handleFileUpload(e){ const f = e.target.files && e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ const ws=loadWorkspace(); ws.files=ws.files||[]; ws.files.push({name:f.name, data:ev.target.result}); saveWorkspace(ws); renderFiles(); }; reader.readAsDataURL(f); }
+
+        function deleteFile(idx){ const ws=loadWorkspace(); ws.files.splice(idx,1); saveWorkspace(ws); renderFiles(); }
+
+        function insertTemplate(text){ const input=document.getElementById('message-input'); if(!input) return; input.value = (input.value?input.value+' ':'')+text; input.focus(); }
+
+        // init workspace on load
+        window.addEventListener('load', ()=>{ renderNotes(); renderFiles(); renderCodePanel(); });
+
+        // real-time sync: respond to storage changes from other tabs
+        window.addEventListener('storage', (e)=>{
+            if(e.key === 'acaf_db_v1'){
+                try{ loadDB(); }catch(err){}
+                // re-render current UI state
+                try{ renderChatList(); renderCodePanel(); renderNotes(); renderFiles(); renderFriendRequests(); renderMessages(); updateRequestsBadge(); }catch(e){}
+            }
+        });
+
+        // Global error capture to surface runtime issues for debugging
+        window.addEventListener('error', function(ev){
+            const msg = ev.message + ' at ' + (ev.filename||'unknown') + ':' + (ev.lineno||'?');
+            try{ showToast('Runtime Error', msg); }catch(e){}
+            try{
+                const errs = JSON.parse(localStorage.getItem('acaf_errors_v1')||'[]');
+                errs.push({time:new Date().toISOString(), type:'error', message: msg, stack: (ev.error && ev.error.stack) || ''});
+                localStorage.setItem('acaf_errors_v1', JSON.stringify(errs));
+            }catch(e){}
+        });
+
+        window.addEventListener('unhandledrejection', function(ev){
+            const msg = 'UnhandledRejection: ' + (ev.reason && ev.reason.message ? ev.reason.message : JSON.stringify(ev.reason));
+            try{ showToast('Promise Rejection', msg); }catch(e){}
+            try{
+                const errs = JSON.parse(localStorage.getItem('acaf_errors_v1')||'[]');
+                errs.push({time:new Date().toISOString(), type:'unhandledrejection', message: msg, detail: ev.reason});
+                localStorage.setItem('acaf_errors_v1', JSON.stringify(errs));
+            }catch(e){}
+        });
+
+        // Welcome animation helper
+        function showWelcomeAnimation(){
+            const overlay = document.getElementById('welcome-overlay');
+            const card = document.getElementById('welcome-card');
+            const title = document.getElementById('welcome-title');
+            const sub = document.getElementById('welcome-sub');
+            if(!overlay || !card || !title || !sub) return;
+            title.innerText = `Welcome, ${currentUser ? currentUser.username : 'Guest'}!`;
+            sub.innerText = 'Happy chatting — ACAF';
+            overlay.classList.remove('hidden');
+            card.classList.remove('welcome-out');
+            card.classList.add('welcome-in');
+            // auto hide after 2.4s
+            setTimeout(()=>{
+                card.classList.remove('welcome-in');
+                card.classList.add('welcome-out');
+                setTimeout(()=>{ overlay.classList.add('hidden'); }, 480);
+            }, 2400);
+        }
+
+        // Guided tour removed
+
+        function openGroupModal() {
+            if(!currentUser) { showToast('Auth','Please sign in to create a group.'); return; }
+            const modal = document.getElementById('modal-group');
+            const card = modal ? modal.firstElementChild : null;
+            const list = document.getElementById('group-members-list');
+            if(!modal || !list) return;
+            modal.classList.remove('hidden');
+            modal.style.zIndex = '100';
+            if(card) card.scrollTop = 0;
+            list.scrollTop = 0;
+            list.innerHTML = '';
+            db.users.forEach(u => {
+                if(u.username !== currentUser.username) {
+                    list.innerHTML += `
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" value="${u.username}" class="group-member-checkbox accent-acaf">
+                            <span>${u.username}</span>
+                        </label>
+                    `;
+                }
+            });
+            // populate community select
+            const sel = document.getElementById('group-community-select');
+            if(sel) {
+                sel.innerHTML = '<option value="">No community</option>';
+                db.communities.forEach(c => {
+                    sel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                });
+            }
+            const nameInput = document.getElementById('group-name-input');
+            if(nameInput) setTimeout(() => { nameInput.focus(); }, 0);
+        }
+
+        function openAddContactModal() {
+            if(!currentUser) { showToast('Auth','Please sign in to add a contact.'); return; }
+            document.getElementById('add-contact-username').value = '';
+            document.getElementById('add-contact-error').innerText = '';
+            document.getElementById('modal-add-contact').classList.remove('hidden');
+        }
+
+        function addContact() {
+            if(!currentUser) return;
+            const uname = document.getElementById('add-contact-username').value.trim();
+            const err = document.getElementById('add-contact-error');
+            if(!uname) { err.innerText = 'Enter a username.'; return; }
+            if(uname.toLowerCase() === currentUser.username.toLowerCase()) { err.innerText = 'Cannot add yourself.'; return; }
+            const userRec = db.users.find(u => u.username.toLowerCase() === uname.toLowerCase());
+            if(!userRec) { err.innerText = 'User not found.'; return; }
+            // Instead of adding immediately, create a friend request
+            sendFriendRequest(currentUser.username, userRec.username);
+            closeModals();
+            showToast('Friend Request', `Request sent to ${userRec.username}`);
+            renderFriendRequests();
+        }
+
+        function openCommunityModal() {
+            document.getElementById('modal-community').classList.remove('hidden');
+        }
+
+        function openStatusModal() {
+            document.getElementById('modal-status').classList.remove('hidden');
+            const feed = document.getElementById('status-feed-container');
+            feed.innerHTML = '';
+            db.users.forEach(u => {
+                feed.innerHTML += `
+                    <div class="bg-[#202c33] p-3 rounded flex items-center gap-3 text-left">
+                        <img src="${u.pic}" class="w-10 h-10 rounded-full border avatar-border object-cover">
+                        <div>
+                            <h4 class="font-bold text-sm">${u.username}</h4>
+                            <p class="text-xs text-slate-300">${u.status}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- FRIEND REQUESTS ---
+        function sendFriendRequest(fromUser, toUser){
+            db.friendRequests = db.friendRequests || [];
+            // prevent duplicate pending requests
+            const existing = db.friendRequests.find(r => r.from.toLowerCase()===fromUser.toLowerCase() && r.to.toLowerCase()===toUser.toLowerCase() && r.status==='pending');
+            if(existing) return;
+            const req = { id: 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), from: fromUser, to: toUser, status: 'pending', createdAt: new Date().toISOString() };
+            // If recipient has blocked the sender, ignore the request
+            const recipRec = db.users.find(u=>u.username.toLowerCase()===toUser.toLowerCase());
+            if(recipRec && recipRec.blocked && recipRec.blocked.includes(fromUser)){
+                return;
+            }
+            db.friendRequests.push(req);
+            // If the recipient is the currently signed-in user, run spam detection immediately
+            if(currentUser && toUser && currentUser.username && toUser.toLowerCase() === currentUser.username.toLowerCase()){
+                const score = detectSpamScoreForActor(fromUser);
+                req.spamScore = score;
+                req.spam = score >= 3;
+                // auto-deny if high spam score
+                if(req.spam){ req.status = 'denied'; showToast('Spam','Friend request from '+fromUser+' flagged as spam and denied.'); }
+            }
+            saveDB();
+            updateRequestsBadge();
+        }
+
+        function renderFriendRequests(){
+            const modal = document.getElementById('modal-requests');
+            const list = document.getElementById('requests-list');
+            if(!list) return;
+            list.innerHTML = '';
+            if(!currentUser) { updateRequestsBadge(); return; }
+            db.friendRequests = db.friendRequests || [];
+            const inbox = db.friendRequests.filter(r => r.to.toLowerCase() === currentUser.username.toLowerCase() && r.status==='pending' && !(currentUser.blocked && currentUser.blocked.includes(r.from)));
+            inbox.forEach(r => {
+                const el = document.createElement('div');
+                el.className = 'bg-[#071827] p-3 rounded flex items-center justify-between';
+                const spamTag = r.spam ? '<span class="text-amber-300 text-xs mr-2">[SPAM]</span>' : '';
+                let actions = '';
+                if(r.spam){
+                    actions = `<div class="flex gap-2"><button onclick="blockUser('${r.from}')" class="px-3 py-1 bg-red-700 rounded text-xs">Block</button><button onclick="denyFriendRequest('${r.id}')" class="px-3 py-1 bg-slate-700 rounded text-xs">Deny</button></div>`;
+                } else {
+                    actions = `<div class="flex gap-2"><button onclick="acceptFriendRequest('${r.id}')" class="px-3 py-1 btn-acaf rounded text-xs">Accept</button><button onclick="denyFriendRequest('${r.id}')" class="px-3 py-1 bg-slate-700 rounded text-xs">Deny</button><button onclick="blockUser('${r.from}')" class="px-3 py-1 bg-red-700 rounded text-xs">Block</button></div>`;
+                }
+                el.innerHTML = `<div>${spamTag}<strong class="text-sm">${escapeHtml(r.from)}</strong><div class="text-xs text-slate-400">Sent: ${new Date(r.createdAt).toLocaleString()}</div></div>${actions}`;
+                list.appendChild(el);
+            });
+            updateRequestsBadge();
+        }
+
+        function updateRequestsBadge(){
+            const badge = document.getElementById('requests-badge');
+            if(!badge) return;
+            db.friendRequests = db.friendRequests || [];
+            const count = currentUser ? db.friendRequests.filter(r => r.to.toLowerCase()===currentUser.username.toLowerCase() && r.status==='pending').length : 0;
+            if(count>0){ badge.innerText = count; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+        }
+
+        function openRequestsModal(){
+            if(!currentUser) { showToast('Auth','Please sign in'); return; }
+            document.getElementById('modal-requests').classList.remove('hidden');
+            renderFriendRequests();
+        }
+
+        function acceptFriendRequest(id){
+            const req = db.friendRequests.find(r=>r.id===id);
+            if(!req) return;
+            // add to both users' contacts
+            const fromUser = db.users.find(u=>u.username.toLowerCase()===req.from.toLowerCase());
+            const toUser = db.users.find(u=>u.username.toLowerCase()===req.to.toLowerCase());
+            let exists = null;
+            if(fromUser && toUser){
+                fromUser.contacts = fromUser.contacts || [];
+                toUser.contacts = toUser.contacts || [];
+                if(!fromUser.contacts.includes(toUser.username)) fromUser.contacts.push(toUser.username);
+                if(!toUser.contacts.includes(fromUser.username)) toUser.contacts.push(fromUser.username);
+                // create symmetric direct chat if missing
+                const pair = [fromUser.username, toUser.username].map(s=>s.toString()).sort((a,b)=>a.localeCompare(b));
+                const chatId = 'dm_' + pair.join('__');
+                exists = db.chats.find(c=>c.id===chatId);
+                if(!exists){ db.chats.push({ id: chatId, name: pair.find(x=>x!==toUser.username) || fromUser.username, type:'direct', avatar: fromUser.pic, members: [fromUser.username, toUser.username], messages: [], unread: {} }); }
+                exists = db.chats.find(c=>c.id===chatId);
+            }
+            req.status = 'accepted';
+            saveDB();
+            renderFriendRequests();
+            renderChatList();
+            showToast('Friend Request', `You and ${req.from} are now contacts.`);
+            // if a direct chat was created, open it for the current user
+            if(exists && exists.id){ selectChat(exists.id); }
+        }
+
+        function denyFriendRequest(id){
+            const req = db.friendRequests.find(r=>r.id===id);
+            if(!req) return;
+            req.status = 'denied';
+            saveDB();
+            renderFriendRequests();
+            showToast('Friend Request', `Request from ${req.from} denied.`);
+        }
+
+        function closeModals() {
+            document.querySelectorAll('[id^="modal-"].fixed').forEach(m => {
+                m.classList.add('hidden');
+                const card = m.firstElementChild;
+                if(card) card.scrollTop = 0;
+            });
+        }
+
+        function saveProfileChanges() {
+            const fileInput = document.getElementById('edit-avatar-file');
+            const newPic = document.getElementById('edit-avatar-url').value.trim();
+            const newStatus = document.getElementById('edit-status-text').value.trim();
+
+            // If a file was uploaded, read it as data URL and save asynchronously
+            if(fileInput && fileInput.files && fileInput.files[0]) {
+                const f = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    currentUser.pic = ev.target.result;
+                    if(newStatus) currentUser.status = newStatus;
+                    document.getElementById('my-avatar').src = currentUser.pic;
+                    // Update any chat entries that reference this user
+                    db.chats.forEach(c => { if(Array.isArray(c.members) && c.members.includes(currentUser.username)) c.avatar = currentUser.pic; });
+                    saveDB();
+                    closeModals();
+                    try{ renderProfileArea(); }catch(e){}
+                    renderChatList();
+                };
+                reader.readAsDataURL(f);
+                return;
+            }
+
+            if(newPic) currentUser.pic = newPic;
+            if(newStatus) currentUser.status = newStatus;
+
+            document.getElementById('my-avatar').src = currentUser.pic;
+            db.chats.forEach(c => { if(Array.isArray(c.members) && c.members.includes(currentUser.username)) c.avatar = currentUser.pic; });
+            saveDB();
+            closeModals();
+            try{ renderProfileArea(); }catch(e){}
+            renderChatList();
+        }
+
+        // --- Profile area helpers ---
+        function renderProfileArea(){
+            const statusEl = document.getElementById('my-status');
+            const usernameEl = document.getElementById('my-username');
+            const avatarEl = document.getElementById('my-avatar');
+            if(!statusEl) return;
+            if(currentUser){
+                statusEl.innerText = currentUser.status || 'No status set';
+                if(usernameEl) usernameEl.innerText = currentUser.username;
+                if(avatarEl) avatarEl.src = currentUser.pic || avatarEl.src;
+            } else {
+                statusEl.innerText = 'Not signed in';
+                if(usernameEl) usernameEl.innerText = '';
+                if(avatarEl) avatarEl.src = 'https://i.pravatar.cc/150';
+            }
+        }
+
+        function toggleInlineStatusEdit(){
+            if(!currentUser){ showToast('Auth','Please sign in to edit status.'); return; }
+            const input = document.getElementById('inline-status-input');
+            const actions = document.getElementById('inline-status-actions');
+            const display = document.getElementById('inline-status-display');
+            const editBtn = document.getElementById('inline-edit-btn');
+            if(!input || !actions || !display) return;
+            if(input.classList.contains('hidden')){
+                input.value = currentUser.status || '';
+                input.classList.remove('hidden');
+                actions.classList.remove('hidden');
+                display.classList.add('hidden');
+                if(editBtn) editBtn.classList.add('hidden');
+                input.focus();
+            } else {
+                input.classList.add('hidden');
+                actions.classList.add('hidden');
+                display.classList.remove('hidden');
+                if(editBtn) editBtn.classList.remove('hidden');
+            }
+        }
+
+        function saveInlineStatus(){
+            const input = document.getElementById('inline-status-input');
+            if(!currentUser || !input) return;
+            const v = input.value.trim();
+            currentUser.status = v;
+            saveDB();
+            renderProfileArea();
+            const modalStatus = document.getElementById('edit-status-text'); if(modalStatus) modalStatus.value = v;
+            showToast('Profile','Status updated');
+            toggleInlineStatusEdit();
+        }
+
+        function cancelInlineStatus(){
+            const input = document.getElementById('inline-status-input');
+            if(!input) return; input.value = '';
+            toggleInlineStatusEdit();
+        }
+
+        function createGroup() {
+            const name = document.getElementById('group-name-input').value.trim();
+            if(!name) return;
+            const checkboxes = document.querySelectorAll('.group-member-checkbox:checked');
+            let members = [currentUser.username];
+            checkboxes.forEach(cb => members.push(cb.value));
+
+            const newGroupId = 'group_' + Date.now();
+            const communitySelected = document.getElementById('group-community-select') ? document.getElementById('group-community-select').value : '';
+            const newGroup = {
+                id: newGroupId,
+                name: name,
+                type: 'group',
+                avatar: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=150&q=80',
+                members: members,
+                admins: [currentUser.username],
+                messages: [{sender: 'System', text: `Group created by ${currentUser.username}`}]
+            };
+
+            db.chats.push(newGroup);
+            saveDB();
+            // attach to community if selected
+            if(communitySelected) {
+                const comm = db.communities.find(c => c.name === communitySelected);
+                if(comm) comm.groups.push(newGroupId);
+            }
+            // Add group id to each member's contacts (optional) and ensure members exist
+            members.forEach(m => {
+                const u = db.users.find(x => x.username === m);
+                if(u && !Array.isArray(u.contacts)) u.contacts = [];
+            });
+
+            closeModals();
+            renderChatList();
+            // open group chat for creator
+            document.getElementById('chat-window').classList.remove('hidden');
+            selectChat(newGroupId);
+        }
+
+        function unfriendCurrentChat(){
+            const chat = db.chats.find(c=>c.id===activeChatId);
+            if(!chat || chat.type !== 'direct') return;
+            const other = chat.members.find(m=>m!==currentUser.username);
+            if(!other) return;
+            if(!confirm(`Remove ${other} from your contacts and delete this chat?`)) return;
+            // remove mutual contacts
+            const meRec = db.users.find(u=>u.username===currentUser.username);
+            const otherRec = db.users.find(u=>u.username===other);
+            if(meRec && Array.isArray(meRec.contacts)) meRec.contacts = meRec.contacts.filter(c=>c!==other);
+            if(otherRec && Array.isArray(otherRec.contacts)) otherRec.contacts = otherRec.contacts.filter(c=>c!==currentUser.username);
+            // remove chat from db.chats
+            db.chats = db.chats.filter(c=>c.id!==chat.id);
+            saveDB();
+            showToast('Unfriend', `${other} has been removed from your contacts.`);
+            activeChatId = null;
+            document.getElementById('chat-window').classList.add('hidden');
+            renderChatList();
+        }
+
+        function leaveCurrentGroup(){
+            const chat = db.chats.find(c=>c.id===activeChatId);
+            if(!chat || chat.type !== 'group') return;
+            if(!confirm(`Leave group "${chat.name}"?`)) return;
+            // remove current user from members
+            chat.members = chat.members.filter(m => m !== currentUser.username);
+            // remove from admins if present
+            if(chat.admins) chat.admins = chat.admins.filter(a => a !== currentUser.username);
+            saveDB();
+            showToast('Group', `You left ${chat.name}`);
+            // if no longer a member, close chat window
+            if(!chat.members.includes(currentUser.username)){
+                activeChatId = null;
+                document.getElementById('chat-window').classList.add('hidden');
+            }
+            renderChatList();
+        }
+
+        function openGroupManageModal(){
+            const chat = db.chats.find(c=>c.id===activeChatId);
+            if(!chat || chat.type !== 'group') return;
+            const modal = document.getElementById('modal-group-manage');
+            const list = document.getElementById('group-manage-list');
+            if(!modal || !list) return;
+            list.innerHTML = '';
+            const renameInput = document.getElementById('group-rename-input');
+            if(renameInput) renameInput.value = chat.name || '';
+            modal.dataset.chatId = chat.id;
+            const saveBtn = document.getElementById('group-rename-save');
+            if(saveBtn){ saveBtn.onclick = ()=> saveGroupName(); }
+            chat.members.forEach(m =>{
+                const isAdmin = chat.admins && chat.admins.includes(m);
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between p-2 bg-[#071827] rounded mb-2';
+                row.innerHTML = `<div><strong>${escapeHtml(m)}</strong> ${isAdmin?'<span class="text-xs ml-2 text-slate-300">(admin)</span>':''}</div><div>${m!==currentUser.username && (chat.admins && chat.admins.includes(currentUser.username))?`<button onclick="kickMember('${chat.id}','${m}')" class="px-2 py-1 text-xs bg-red-600 rounded">Kick</button>`:''}</div>`;
+                list.appendChild(row);
+            });
+            modal.classList.remove('hidden');
+        }
+
+        function saveGroupName(){
+            const modal = document.getElementById('modal-group-manage');
+            if(!modal) return;
+            const chatId = modal.dataset.chatId;
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            const val = (document.getElementById('group-rename-input').value||'').trim();
+            if(!val) return;
+            chat.name = val;
+            saveDB();
+            renderChatList();
+            showToast('Group','Group renamed');
+            // refresh modal list
+            openGroupManageModal();
+        }
+
+        function kickMember(chatId, memberUsername){
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            // only admin can kick
+            if(!chat.admins || !chat.admins.includes(currentUser.username)) { showToast('Permission', 'Only admins can kick members.'); return; }
+            if(!chat.members.includes(memberUsername)) return;
+            if(!confirm(`Kick ${memberUsername} from ${chat.name}?`)) return;
+            chat.members = chat.members.filter(m=>m!==memberUsername);
+            // remove from admins if was admin
+            if(chat.admins) chat.admins = chat.admins.filter(a=>a!==memberUsername);
+            saveDB();
+            showToast('Group', `${memberUsername} removed from ${chat.name}`);
+            // if kicked member is current user, close modal and possibly hide chat
+            if(memberUsername === currentUser.username){
+                activeChatId = null;
+                document.getElementById('chat-window').classList.add('hidden');
+            }
+            renderChatList();
+            openGroupManageModal();
+        }
+
+        function createCommunity() {
+            const name = document.getElementById('community-name-input').value.trim();
+            if(!name) return;
+            const id = 'comm_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+            db.communities.push({ id, name, groups: [], createdAt: new Date() });
+            saveDB();
+            alert(`Community "${name}" successfully created!`);
+            closeModals();
+            try{ renderCommunitySidebarList(); }catch(e){}
+        }
+
+        function openCommunityManageModal(){
+            const modal = document.getElementById('modal-community-manage');
+            const list = document.getElementById('community-manage-list');
+            if(!modal || !list) return;
+            list.innerHTML = '';
+            (db.communities||[]).forEach(c=>{
+                const row = document.createElement('div'); row.className='bg-[#071827] p-2 rounded mb-2 flex items-center gap-2';
+                row.innerHTML = `<input class="flex-1 bg-[#0b1220] p-2 rounded text-sm" value="${escapeHtml(c.name)}" data-id="${c.id}"><div class="flex gap-2"><button class="px-2 py-1 btn-acaf text-xs" onclick="renameCommunity('${c.id}')">Save</button><button class="px-2 py-1 bg-red-700 text-xs" onclick="deleteCommunity('${c.id}')">Delete</button></div>`;
+                list.appendChild(row);
+            });
+            modal.classList.remove('hidden');
+        }
+
+        function renameCommunity(id){
+            const list = document.getElementById('community-manage-list'); if(!list) return;
+            const inp = list.querySelector(`input[data-id=\"${id}\"]`);
+            if(!inp) return; const v = inp.value.trim(); if(!v) return;
+            const c = db.communities.find(x=>x.id===id); if(!c) return; c.name = v; saveDB(); renderChatList(); renderNotes(); showToast('Community','Renamed'); try{ renderCommunitySidebarList(); }catch(e){}
+        }
+
+        function deleteCommunity(id){
+            if(!confirm('Delete this community?')) return;
+            db.communities = (db.communities||[]).filter(x=>x.id!==id); saveDB(); try{ renderChatList(); }catch(e){}; openCommunityManageModal();
+            try{ renderCommunitySidebarList(); }catch(e){}
+        }
+
+        function renderCommunitySidebarList(){
+            const container = document.getElementById('community-list-sidebar');
+            if(!container) return;
+            container.innerHTML = '';
+            const allBtn = document.createElement('button');
+            allBtn.className = 'text-xs text-slate-300 text-left p-1 rounded hover:bg-[#0b1220]';
+            allBtn.innerText = activeCommunityFilter ? 'Show all chats' : 'All chats';
+            allBtn.onclick = ()=>{ activeCommunityFilter = null; renderChatList(); renderCommunitySidebarList(); };
+            container.appendChild(allBtn);
+
+            (db.communities||[]).forEach(c=>{
+                const b = document.createElement('button');
+                b.className = 'text-sm text-white text-left p-1 rounded hover:bg-[#0b1220] flex items-center justify-between';
+                b.innerHTML = `<span class="truncate">${escapeHtml(c.name)}</span><span class="text-xs text-slate-400">${(c.groups||[]).length}</span>`;
+                b.onclick = ()=>{ selectCommunity(c.id); };
+                if(activeCommunityFilter === c.id){ b.classList.add('bg-[#0b1220]'); }
+                container.appendChild(b);
+            });
+        }
+
+        function selectCommunity(id){
+            if(activeCommunityFilter === id) activeCommunityFilter = null; else activeCommunityFilter = id;
+            renderChatList(); renderCommunitySidebarList();
+            const comm = db.communities.find(x=>x.id===id);
+            if(comm) showToast('Community', activeCommunityFilter ? `Filtered to ${comm.name}` : 'Showing all chats');
+        }
+
+        // --- VIDEO CALL SIMULATION (WebRTC Elements) ---
+        let localStream = null;
+        async function startVideoCall() {
+            document.getElementById('modal-video').classList.remove('hidden');
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('local-video').srcObject = localStream;
+                // Simulating remote peer loopback for isolated local test usage
+                document.getElementById('remote-video').srcObject = localStream;
+            } catch(e) {
+                console.warn("Camera access denied or unavailable. Running dummy view.");
+            }
+        }
+
+        async function startAudioCall(){
+            document.getElementById('modal-video').classList.remove('hidden');
+            try{
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // attach audio stream to a hidden audio element so it stays active
+                const remote = document.getElementById('remote-video');
+                if(remote){ try{ remote.srcObject = null; }catch(e){} }
+                // show a small indicator in modal (reuse video modal)
+                showToast('Call','Audio call started');
+            }catch(e){
+                showToast('Call','Microphone access denied or unavailable.');
+            }
+        }
+
+        function endVideoCall() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('modal-video').classList.add('hidden');
+        }
+
+        // Notification & Mode state
+        let officeMode = false;
+        let silentMode = false;
+        let nightMode = false;
+
+        function toggleOfficeMode(){
+            officeMode = !officeMode;
+            document.getElementById('btn-office-mode').classList.toggle('mode-active', officeMode);
+        }
+        function toggleSilentMode(){
+            silentMode = !silentMode;
+            document.getElementById('btn-silent-mode').classList.toggle('mode-active', silentMode);
+        }
+        function toggleNightMode(){
+            nightMode = !nightMode;
+            document.body.classList.toggle('night-mode', nightMode);
+            document.getElementById('btn-night-mode').classList.toggle('mode-active', nightMode);
+        }
+
+        function toggleToolsCollapse(){
+            const grid = document.getElementById('tools-grid');
+            if(!grid) return;
+            grid.classList.toggle('hidden');
+        }
+
+        // --- Spam detection for friend-requests ---
+        function detectSpamScoreForActor(actorUsername){
+            let score = 0;
+            const actor = db.users.find(u=>u.username===actorUsername);
+            if(!actor) score += 2; // unknown accounts are suspicious
+            else {
+                const name = (actor.username||'');
+                const digits = (name.match(/\d/g)||[]).length;
+                if(digits >= 3) score += 1; // numeric-heavy names
+                if(!actor.contacts || actor.contacts.length === 0) score += 1; // isolated accounts
+                if(!actor.pic) score += 1; // no avatar
+                // recent friend requests sent
+                const hourAgo = Date.now() - (60*60*1000);
+                const recentReqs = (db.friendRequests||[]).filter(r=>r.from===actorUsername && new Date(r.createdAt).getTime() >= hourAgo).length;
+                if(recentReqs >= 3) score += 2;
+            }
+            return score;
+        }
+
+        // Toast container
+        const toastContainer = (()=>{
+            let el = document.getElementById('toast-container');
+            if(!el){ el = document.createElement('div'); el.id='toast-container'; document.body.appendChild(el); }
+            return el;
+        })();
+
+        function playBeep(){
+            try{
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type='sine'; o.frequency.value = 520;
+                g.gain.value = 0.05;
+                o.connect(g); g.connect(ctx.destination);
+                o.start();
+                setTimeout(()=>{ o.stop(); ctx.close(); }, 120);
+            }catch(e){ /* ignore */ }
+        }
+
+        function showToast(title, text){
+            const t = document.createElement('div');
+            t.className='toast';
+            t.innerHTML = `<strong class="acaf-blue">${title}</strong><div>${text}</div>`;
+            toastContainer.appendChild(t);
+            setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity 300ms'; setTimeout(()=>t.remove(),350); }, 4000);
+        }
+
+        function notifyForMessage(chatId, msg){
+            if(!currentUser) return;
+            const chat = db.chats.find(c=>c.id===chatId);
+            if(!chat) return;
+            if(!Array.isArray(chat.members) || !chat.members.includes(currentUser.username)) return;
+            if(msg.sender === currentUser.username) return;
+            // office mode filter
+            const senderRec = db.users.find(u=>u.username===msg.sender);
+            if(officeMode){
+                if(!(senderRec && senderRec.tags && senderRec.tags.office)) return;
+            }
+            // if active chat is this chat, don't notify
+            if(activeChatId === chatId) return;
+            // silent mode suppresses toasts and sound
+            if(!silentMode) playBeep();
+            if(!silentMode) showToast(msg.sender, msg.text);
+        }
+
+        function toggleTagOffice(){
+            // toggle tag for 'other' participant of current active chat
+            const chat = db.chats.find(c=>c.id===activeChatId);
+            if(!chat || !Array.isArray(chat.members)) return;
+            const other = chat.members.find(m=>m!==currentUser.username);
+            const urec = db.users.find(u=>u.username===other);
+            if(!urec) return;
+            if(!urec.tags) urec.tags = {};
+            urec.tags.office = !urec.tags.office;
+            const btn = document.getElementById('tag-office-btn');
+            btn.innerText = urec.tags.office ? 'Office ✓' : 'Tag Office';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'Escape') closeModals();
+        });
+    </script>
+</body>
+</html>
